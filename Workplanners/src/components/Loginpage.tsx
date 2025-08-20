@@ -22,7 +22,6 @@ const Loginpage = () => {
       const data = await response.json();
 
       if (response.ok && data.authUrl) {
-        // redirect to slack consent page
         window.location.href = data.authUrl;
       } else {
         alert("Unable to start Slack login. Please try again.");
@@ -35,15 +34,19 @@ const Loginpage = () => {
     }
   };
 
-  // Detect if redirected back from Slack
+  // Check redirect from Slack
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+    const status = params.get("status");
+    const success = params.get("success");
 
-    if (code) {
-      const dummyUser = { name: "Slack User" };
-      localStorage.setItem("user", JSON.stringify(dummyUser));
+    if (status === "200" || success === "true") {
+      const user = { name: "Slack User" };
+      localStorage.setItem("user", JSON.stringify(user));
       navigate({ to: "/dashboard" });
+    } else if (status && success !== "true") {
+      alert("Slack authorization failed. Please try again.");
+      navigate({ to: "/" });
     }
   }, [navigate]);
 
@@ -66,15 +69,12 @@ const Loginpage = () => {
           <button
             onClick={handleSlackLogin}
             disabled={loading}
-            className="flex items-center gap-3 px-6 py-3 border border-gray-300 rounded-lg shadow-sm hover:shadow-md bg-white transition relative"
+            className="flex items-center gap-3 px-6 py-3 border border-gray-300 rounded-lg shadow-sm hover:shadow-md bg-white transition"
           >
             <img src={slackicon} alt="Slack" className="w-5 h-5" />
             <span className="text-gray-700 font-medium">
-              {loading ? "Connecting..." : "Continue with Slack"}
+              Continue with Slack
             </span>
-            {loading && (
-              <span className="absolute right-3 animate-spin">⏳</span>
-            )}
           </button>
         </div>
       </div>
