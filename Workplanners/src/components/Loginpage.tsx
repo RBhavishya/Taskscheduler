@@ -16,7 +16,9 @@ const Loginpage = () => {
   const url = new URLSearchParams(window.location.search);
   const code1 = url.get("code");
   console.log(code1, url, "gggggg");
-
+  useEffect(() => {
+    console.log(url, location, "uuuuuuuuuu");
+  }, [url, location]);
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as any;
   const code = search?.code;
