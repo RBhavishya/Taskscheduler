@@ -16,14 +16,19 @@ const Loginpage = () => {
   const url = new URLSearchParams(window.location.search);
   const code1 = url.get("code");
   console.log(code1, url, "gggggg");
-  useEffect(() => {
-    console.log(url, location, "uuuuuuuuuu");
-  }, [url, location]);
+  const [code2, setCode2] = React.useState<string>();
+
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as any;
   const code = search?.code;
   console.log(code, "code001");
-
+  useEffect(() => {
+    console.log(url, location, "uuuuuuuuuu");
+    const code1 = url.get("code");
+    if (code1) {
+      setCode2(code1);
+    }
+  }, [url, location, search]);
   console.log(url, "paaa");
   const slackAuthMutation = useMutation({
     mutationFn: async () => {
@@ -70,10 +75,11 @@ const Loginpage = () => {
   });
 
   useEffect(() => {
-    if (code) {
-      slackCallbackMutation.mutate(code);
+    if (code2) {
+      console.log(code2, "debug001");
+      slackCallbackMutation.mutate(code2);
     }
-  }, [code]);
+  }, [code2]);
 
   return (
     <div className="flex h-screen w-screen">
