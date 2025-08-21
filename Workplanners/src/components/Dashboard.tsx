@@ -67,7 +67,7 @@ const Dashboard = () => {
       >
         <div className="flex justify-end py-2">
           <div
-            className="inline-flex items-center gap-2"
+            className="inline-flex rounded-xl items-center gap-2"
             style={{
               padding: "10px 12px",
               borderRadius: "10px",
