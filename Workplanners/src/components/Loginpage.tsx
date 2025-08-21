@@ -61,10 +61,11 @@ const Loginpage = () => {
           method: "GET",
         }
       );
-      return navigate({ to: "/dashboard" });
+      console.log(res, "ressss001");
       console.log("2nd api calleduuuuuuu");
       if (!res.ok) throw new Error("slack callback failed");
       console.log("2nd api returned responseeuuuuuuuuuuu");
+      console.log(res, "ressss002");
       return res.json();
     },
     onSuccess: (data) => {
@@ -77,8 +78,8 @@ const Loginpage = () => {
         navigate({ to: "/dashboard" });
       }
     },
-    onError: () => {
-      console.log("2nd api on errorrr haii");
+    onError: (err) => {
+      console.log("2nd api on errorrr haii", err);
       navigate({ to: "/" });
     },
   });
