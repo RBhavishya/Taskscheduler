@@ -17,13 +17,12 @@ const Loginpage = () => {
   const code1 = url.get("code");
   console.log(code1, url, "gggggg");
   const [code2, setCode2] = React.useState<string>();
-
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as any;
   const code = search?.code;
   console.log(code, "code001");
   useEffect(() => {
-    console.log(url, location, "uuuuuuuuuu");
+    console.log(url, location, "useeffectuuuuuuuuu");
     const code = search?.code;
     if (code) {
       setCode2(code);
@@ -36,51 +35,60 @@ const Loginpage = () => {
         "https://api-task-sheduler-org.onrender.com/v1.0/auth/slack",
         { method: "GET" }
       );
+      console.log("frst api calleddddddddddddd");
       if (!res.ok) throw new Error("Unable to get Slack Auth URL");
       return res.json();
     },
     onSuccess: (data) => {
       if (data?.authUrl) {
+        console.log("frst api on successuuuuu");
         window.location.href = data.authUrl;
       } else {
+        console.log("frst api on errorrrrrrrrr");
         alert("Unable to start Slack login. Please try again.");
       }
     },
     onError: () => {
       alert("Slack login error. Please try again.");
+      console.log("on errorr iruku");
     },
   });
-
   const slackCallbackMutation = useMutation({
-    mutationFn: async (code: string) => {
+    mutationFn: async (code2: string) => {
       const res = await fetch(
-        `https://api-task-sheduler-org.onrender.com/v1.0/auth/slack/callback?code=${code}`,
+        `https://api-task-sheduler-org.onrender.com/v1.0/auth/slack/callback?code=${code2}`,
         {
           method: "GET",
         }
       );
+      return navigate({ to: "/dashboard" });
+      console.log("2nd api calleduuuuuuu");
       if (!res.ok) throw new Error("slack callback failed");
+      console.log("2nd api returned responseeuuuuuuuuuuu");
       return res.json();
     },
     onSuccess: (data) => {
       if (data?.status === "success") {
+        console.log("2nd api succesuuuuuu");
         localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("success001");
+        console.log(
+          "user data stored in loal storageuuuu and need to navigate to dashboard"
+        );
         navigate({ to: "/dashboard" });
       }
     },
     onError: () => {
+      console.log("2nd api on errorrr haii");
       navigate({ to: "/" });
     },
   });
-
   useEffect(() => {
     if (code2) {
-      console.log(code2, "debug001");
+      console.log(code2, "code222 vachindeeeee");
       slackCallbackMutation.mutate(code2);
+      console.log("hogaya!!!!!!!!");
     }
   }, [code2]);
-
   return (
     <div className="flex h-screen w-screen">
       <div className="w-1/2 h-full flex items-center justify-center bg-white">
@@ -90,13 +98,11 @@ const Loginpage = () => {
           className="h-full w-full object-cover"
         />
       </div>
-
       <div className="w-1/2 flex flex-col items-center justify-center bg-white">
         <div className="text-center space-y-8 px-6">
           <p className="uppercase tracking-wider text-gray-600 font-medium">
             Welcome Back.
           </p>
-
           <button
             onClick={() => slackAuthMutation.mutate()}
             className="flex items-center gap-3 px-6 py-3 border border-gray-300 rounded-lg"
@@ -113,5 +119,4 @@ const Loginpage = () => {
     </div>
   );
 };
-
 export default Loginpage;
