@@ -35,14 +35,15 @@ const Loginpage = () => {
         "https://api-task-sheduler-org.onrender.com/v1.0/auth/slack",
         { method: "GET" }
       );
-      console.log("frst api calleddddddddddddd");
-      if (!res.ok) throw new Error("Unable to get Slack Auth URL");
+      console.log("frst api calleddddddddddddd", res);
+      // if (!res.ok) throw new Error("Unable to get Slack Auth URL");
       return res.json();
     },
     onSuccess: (data) => {
-      if (data?.authUrl) {
-        console.log("frst api on successuuuuu");
-        window.location.href = data.authUrl;
+      console.log(data?.data?.authUrl, "apidata");
+      if (data?.data?.authUrl) {
+        console.log("frst api on successuuuuu", data?.data?.authUrl);
+        window.location.href = data?.data?.authUrl;
       } else {
         console.log("frst api on errorrrrrrrrr");
         alert("Unable to start Slack login. Please try again.");
@@ -61,14 +62,15 @@ const Loginpage = () => {
           method: "GET",
         }
       );
-      console.log(res, "ressss001");
+      console.log(res, "apidata0021");
       console.log("2nd api calleduuuuuuu");
-      if (!res.ok) throw new Error("slack callback failed");
+      // if (!res.ok) throw new Error("slack callback failed");
       console.log("2nd api returned responseeuuuuuuuuuuu");
       console.log(res, "ressss002");
       return res.json();
     },
     onSuccess: (data) => {
+      console.log(data, "apidata0022");
       if (data?.status === "success") {
         console.log("2nd api succesuuuuuu");
         localStorage.setItem("user", JSON.stringify(data.user));
