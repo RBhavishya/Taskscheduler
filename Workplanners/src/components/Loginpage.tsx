@@ -71,9 +71,9 @@ const Loginpage = () => {
     },
     onSuccess: (data) => {
       console.log(data, "apidata0022");
-      if (data?.status === "success") {
+      if (data?.status === 200) {
         console.log("2nd api succesuuuuuu");
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data?.user));
         console.log(
           "user data stored in loal storageuuuu and need to navigate to dashboard"
         );
