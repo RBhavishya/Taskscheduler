@@ -1,54 +1,65 @@
 import * as React from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation, useSearch } from "@tanstack/react-router";
 import loginimage from "../assets/loginimage.png";
 import slackicon from "../assets/slackicon.svg";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 const Loginpage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(false);
+  const search = useSearch({ strict: false });
+  const code = search?.code;
 
-  const handleSlackLogin = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(
+  const slackAuthMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(
         "https://api-task-sheduler-org.onrender.com/v1.0/auth/slack",
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        }
+        { method: "GET" }
       );
-
-      const data = await response.json();
-
-      if (response.ok && data.authUrl) {
+      if (!res.ok) throw new Error("Unable to get Slack Auth URL");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data?.authUrl) {
         window.location.href = data.authUrl;
       } else {
         alert("Unable to start Slack login. Please try again.");
       }
-    } catch (error) {
-      console.error("Slack login error:", error);
+    },
+    onError: () => {
       alert("Slack login error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  // Check redirect from Slack
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("status");
-    const success = params.get("success");
-
-    if (status === "200" || success === "true") {
-      const user = { name: "Slack User" };
-      localStorage.setItem("user", JSON.stringify(user));
-      navigate({ to: "/dashboard" });
-    } else if (status && success !== "true") {
-      alert("Slack authorization failed. Please try again.");
+  const slackCallbackMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const res = await fetch(
+        `https://api-task-sheduler-org.onrender.com/v1.0/auth/slack/callback?code=${code}`,
+        {
+          method: "GET",
+        }
+      );
+      if (!res.ok) throw new Error("slack callback failed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data?.status === "success") {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate({ to: "/dashboard" });
+      } else {
+        navigate({ to: "/" });
+      }
+    },
+    onError: () => {
       navigate({ to: "/" });
+    },
+  });
+
+  useEffect(() => {
+    if (code) {
+      slackCallbackMutation.mutate(code);
     }
-  }, [navigate]);
+  }, [code]);
 
   return (
     <div className="flex h-screen w-screen">
@@ -67,13 +78,14 @@ const Loginpage = () => {
           </p>
 
           <button
-            onClick={handleSlackLogin}
-            disabled={loading}
-            className="flex items-center gap-3 px-6 py-3 border border-gray-300 rounded-lg shadow-sm hover:shadow-md bg-white transition"
+            onClick={() => slackAuthMutation.mutate()}
+            className="flex items-center gap-3 px-6 py-3 border border-gray-300 rounded-lg"
           >
             <img src={slackicon} alt="Slack" className="w-5 h-5" />
             <span className="text-gray-700 font-medium">
-              Continue with Slack
+              {slackAuthMutation.isPending || slackCallbackMutation.isPending
+                ? "Logging in..."
+                : "Continue with Slack"}
             </span>
           </button>
         </div>
