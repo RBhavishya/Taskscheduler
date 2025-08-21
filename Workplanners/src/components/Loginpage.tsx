@@ -24,9 +24,9 @@ const Loginpage = () => {
   console.log(code, "code001");
   useEffect(() => {
     console.log(url, location, "uuuuuuuuuu");
-    const code1 = url.get("code");
-    if (code1) {
-      setCode2(code1);
+    const code = search?.code;
+    if (code) {
+      setCode2(code);
     }
   }, [url, location, search]);
   console.log(url, "paaa");
