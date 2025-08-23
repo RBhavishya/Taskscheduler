@@ -12,7 +12,7 @@ function Layout() {
       <div className="">
         <Sidebar />
       </div>
-      <div className="h-screen ml-90 ">
+      <div className="ml-[250px] flex-1 h-screen overflow-y-auto ">
         <Outlet />
       </div>
     </div>
