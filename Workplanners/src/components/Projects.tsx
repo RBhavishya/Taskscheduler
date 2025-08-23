@@ -67,7 +67,7 @@ const Projects = () => {
 
       {/* Page Title */}
       <div className="flex font-bold text-2xl ml-4 mb-7">Projects</div>
-
+      <hr />
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
         {data?.data?.records?.map((project: any) => (
