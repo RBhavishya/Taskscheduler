@@ -1,17 +1,20 @@
 import React, { useState } from "react";
 
-interface ProjectData {
+export interface ProjectData {
+  id:number
   title: string;
   description: string;
-  links: string[];
+  links?: string[];
 }
 
 interface AddProjectFormProps {
+  nextId: number;
   onSave?: (data: ProjectData) => void;
   onCancel?: () => void;
 }
 
 const AddProjectForm: React.FC<AddProjectFormProps> = ({
+  nextId,
   onSave,
   onCancel,
 }) => {
@@ -33,7 +36,12 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
   };
 
   const handleSave = () => {
-    const projectData: ProjectData = { title, description, links };
+    const projectData: ProjectData & { id: number } = {
+      id: nextId,
+      title,
+      description,
+      links,
+    };
     if (onSave) onSave(projectData);
     console.log("Project Saved:", projectData);
     resetForm();
@@ -49,7 +57,7 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
 
   return (
     <div className="mt-6 p-6 bg-white shadow rounded-xl border max-w-lg">
-      <h2 className="text-lg font-semibold mb-4">Create Project</h2>
+      <h2 className="text-lg font-semibold mb-4">Add Project</h2>
 
       {/* Project Title */}
       <div className="flex flex-col gap-2 mb-4">
@@ -105,7 +113,7 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
       </div>
 
       {/* Footer Buttons */}
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 mt-4">
         <button
           onClick={onCancel}
           className="px-4 py-2 border rounded-lg text-purple-500 hover:bg-gray-100"
