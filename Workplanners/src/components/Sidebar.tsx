@@ -6,18 +6,13 @@ import {
   NotebookPen,
   Bell,
 } from "lucide-react";
-import { Skeleton } from "./ui/skeleton";
+import UserDetails from "./UserDetails";
 
 const Sidebar = () => {
   return (
     <aside className="w-[250px] bg-purple-50 border-r fixed left-0 top-0 h-full p-4">
-      {/* Skeleton / User Info */}
       <div className="flex items-center space-x-4 mb-6">
-        <Skeleton className="h-12 w-12 rounded-full" />
-        <div>
-          <p className="font-semibold">Bhavishya </p>
-          <p className="text-sm text-gray-500">Morning, Bhavishya</p>
-        </div>
+        <UserDetails />
       </div>
       <hr />
       {/* Menu */}

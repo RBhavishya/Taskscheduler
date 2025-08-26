@@ -55,7 +55,7 @@ const Projects = () => {
   } = useQuery({
     queryKey: ["project", selectedProjectId],
     queryFn: () => fetchProjectById(selectedProjectId!),
-    enabled: !!selectedProjectId, // only run if an id is selected
+    enabled: !!selectedProjectId,
   });
 
   // Mutation for adding new project
@@ -188,7 +188,7 @@ const Projects = () => {
               <h2 className="flex items-center justify-center text-semibold text-2xl">
                 About
               </h2>
-              <p className="mb-4 text-gray-600">
+              <p className="flex items-center justify-center mb-4 text-gray-600">
                 {selectedProjectData?.data?.description || "No Description"}
               </p>
 
