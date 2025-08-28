@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface ProjectData {
   id: number;
@@ -11,9 +11,10 @@ export interface ProjectData {
   due_date?: string;
   assigned_users: number[];
 }
+
 interface User {
   id: number;
-  name: string;
+  display_name: string;
 }
 
 interface AddProjectFormProps {
@@ -34,18 +35,34 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [assignedUsers, setAssignedUsers] = useState<number[]>([]);
-  const [usersList, setUsersList] = useState<User[]>([]);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const queryClient = useQueryClient();
 
+  const {
+    data: usersList = [],
+    isLoading,
+    isError,
+  } = useQuery<User[]>({
+    queryKey: ["usersDropdown"],
+    queryFn: async () => {
+      const res = await fetch(
+        "https://api-task-sheduler-org.onrender.com/v1.0/users/dropdown&search_string=${search}"
+      );
+      if (!res.ok) throw new Error("Failed to fetch users");
+      const json = await res.json();
+      return json.data.records;
+    },
+  });
+
   const mutation = useMutation({
     mutationFn: async (newProject: ProjectData) => {
+      console.log("token.access_token");
       const res = await fetch("https://api.example.com/projects", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // if needed
+          Authorization: `Bearer ${localStorage.getItem("token.access_token")}`,
         },
         body: JSON.stringify(newProject),
       });
@@ -53,25 +70,11 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] }); // refresh project list
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       resetForm();
       if (onCancel) onCancel();
     },
   });
-
-  // fetch users list
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("https://dummyjson.com/users");
-        const data = await res.json();
-        setUsersList(data.users);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-      }
-    };
-    fetchUsers();
-  }, []);
 
   const handleAddLink = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && linkInput.trim() !== "") {
@@ -91,10 +94,13 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
     );
   };
 
-  const toUTCDate = (dateStr: string) => {
+  const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toISOString().split("T")[0];
+    const d = new Date(dateStr);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const handleSave = () => {
@@ -104,8 +110,8 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
       description,
       links,
       created_by: Number(user.id),
-      start_date: toUTCDate(startDate),
-      due_date: dueDate ? toUTCDate(dueDate) : undefined,
+      start_date: formatDate(startDate),
+      due_date: dueDate ? formatDate(dueDate) : undefined,
       assigned_users: assignedUsers,
     };
     mutation.mutate(projectData);
@@ -125,7 +131,6 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
     <div className="mt-6 p-6 bg-white shadow rounded-xl border max-w-lg">
       <h2 className="text-lg font-semibold mb-4">Add Project</h2>
 
-      {/* Project Title */}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Title</label>
         <input
@@ -137,7 +142,6 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
         />
       </div>
 
-      {/* Project Description */}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Description</label>
         <textarea
@@ -148,14 +152,14 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
         />
       </div>
 
-      
-
       {/* Start Date */}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Start Date</label>
         <input
           type="date"
-          value={startDate}
+          placeholder=""
+          pattern="\d{4}-\d{2}-\d{2}"
+          value={startDate ? formatDate(startDate) : ""}
           onChange={(e) => setStartDate(e.target.value)}
           className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
           style={{
@@ -169,7 +173,9 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
         <label className="text-sm font-medium">Due Date</label>
         <input
           type="date"
-          value={dueDate}
+          placeholder="yyyy-mm-dd"
+          pattern="\d{4}-\d{2}-\d{2}"
+          value={dueDate ? formatDate(dueDate) : ""}
           onChange={(e) => setDueDate(e.target.value)}
           className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
           style={{
@@ -182,6 +188,8 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Assign Users</label>
         <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
+          {isLoading && <p>Loading users...</p>}
+          {isError && <p>Error fetching users</p>}
           {usersList.map((u) => (
             <label key={u.id} className="flex items-center gap-2 mb-1">
               <input
@@ -189,12 +197,13 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
                 checked={assignedUsers.includes(u.id)}
                 onChange={() => toggleAssignedUser(u.id)}
               />
-              ({u.id}){u.name}
+              ({u.id}) {u.display_name}
             </label>
           ))}
         </div>
       </div>
-      {/* Project Links */}
+
+      {/* Links */}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Reference Links</label>
         <div className="border rounded-lg p-2 flex flex-wrap gap-2 min-h-[48px]">
@@ -224,7 +233,7 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
         </div>
       </div>
 
-      {/* Footer Buttons */}
+      {/* Footer */}
       <div className="flex justify-end gap-2 mt-4">
         <button
           onClick={onCancel}
