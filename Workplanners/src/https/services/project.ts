@@ -4,6 +4,7 @@ import { $fetch } from "../fetch";
 export const getAllProjectsAPI = async () => {
   try {
     const response = await $fetch.get(`/projects`);
+     console.log(response);
     return response;
   } catch (error) {
     throw error;
@@ -27,19 +28,11 @@ export const createProjectAPI = async (newProject: ProjectData) => {
     throw error;
   }
 };
+
 export const getAllUsersAPI = async () => {
   try {
-    const response = await $fetch.get(`/users`);
+    const response = await $fetch.get(`/users/dropdown`);
     return response;
-  } catch (error) {
-    throw error;
-  }
-};
-export const checkProjectTitleAPI = async (title: string) => {
-  try {
-    const response = await $fetch.get(`/projects`);
-    const projects = response.data?.records || [];
-    return projects.some((p: ProjectData) => p.title.toLowerCase() === title.toLowerCase());
   } catch (error) {
     throw error;
   }
