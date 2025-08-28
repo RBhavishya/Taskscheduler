@@ -10,7 +10,9 @@ const Projects = () => {
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+    null
+  );
   const [showDetails, setShowDetails] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -46,7 +48,10 @@ const Projects = () => {
     queryKey: ["project", selectedProjectId],
     queryFn: async () => {
       const result = await getProjectByIdAPI(selectedProjectId!);
-      console.log("Project by ID API response:", JSON.stringify(result, null, 2));
+      console.log(
+        "Project by ID API response:",
+        JSON.stringify(result, null, 2)
+      );
       return result;
     },
     enabled: !!selectedProjectId,
