@@ -11,14 +11,12 @@ const Loginpage = () => {
 
   const [code2, setCode2] = React.useState<string>();
 
-  // ✅ Watch for Slack code in URL
   useEffect(() => {
     if (search?.code) {
       setCode2(search.code);
     }
   }, [search]);
 
-  // ✅ Step 1: Get Slack Auth URL
   const slackAuthMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(
@@ -40,7 +38,6 @@ const Loginpage = () => {
     },
   });
 
-  // ✅ Step 2: Handle Slack callback
   const slackCallbackMutation = useMutation({
     mutationFn: async (code: string) => {
       const res = await fetch(
