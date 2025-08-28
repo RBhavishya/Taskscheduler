@@ -15,7 +15,7 @@ const AddTaskForm = ({ open, onClose }: AddTaskFormProps) => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch("http://localhost:5000/projects"); // your API endpoint
+        const res = await fetch("http://localhost:5000/projects");
         const data = await res.json();
         setProjects(data);
       } catch (err) {

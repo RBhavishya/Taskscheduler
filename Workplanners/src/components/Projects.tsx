@@ -1,23 +1,19 @@
-import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
-import { Dialog } from "@/components/ui/dialog";
-import AddProjectForm, { ProjectData } from "./AddProjectForm";
-
-const BASE_API = "https://api-task-sheduler-org.onrender.com/v1.0";
+import { getAllProjectsAPI, getProjectByIdAPI } from "@/https/services/project";
+import { ProjectData } from "@/lib/interfaces/project";
+import { useNavigate } from "@tanstack/react-router";
 
 const Projects = () => {
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
-    null
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Clock
   useEffect(() => {
@@ -31,52 +27,38 @@ const Projects = () => {
     month: "short",
   });
 
-  // Fetch all projects
-  const fetchProjects = async () => {
-    const res = await fetch(`${BASE_API}/projects`);
-    if (!res.ok) throw new Error("Failed to fetch projects");
-    return res.json();
-  };
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["projects"],
-    queryFn: fetchProjects,
+    queryFn: async () => {
+      const result = await getAllProjectsAPI();
+      return result;
+    },
+    retry: 3,
+    refetchOnMount: true,
   });
 
-  // Fetch project by ID
-  const fetchProjectById = async (id: number) => {
-    const res = await fetch(`${BASE_API}/projects/${id}`);
-    if (!res.ok) throw new Error("Failed to fetch project details");
-    return res.json();
-  };
   const {
     data: selectedProjectData,
     isLoading: loadingProject,
     isError: errorProject,
+    error: projectError,
   } = useQuery({
     queryKey: ["project", selectedProjectId],
-    queryFn: () => fetchProjectById(selectedProjectId!),
+    queryFn: async () => {
+      const result = await getProjectByIdAPI(selectedProjectId!);
+      console.log("Project by ID API response:", JSON.stringify(result, null, 2));
+      return result;
+    },
     enabled: !!selectedProjectId,
   });
 
-  // Mutation for adding new project
-  const addProjectMutation = useMutation({
-    mutationFn: async (newProject: ProjectData) => {
-      const res = await fetch(`${BASE_API}/projects`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newProject),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to add project");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      setShowForm(false);
-    },
-  });
+  const existingProjects: ProjectData[] =
+    data?.data?.data?.records && Array.isArray(data.data.data.records)
+      ? data.data.data.records
+      : [];
+  const filteredProjects: ProjectData[] = existingProjects.filter(
+    (p: ProjectData) => p.title?.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (isLoading) {
     return (
@@ -89,31 +71,23 @@ const Projects = () => {
   }
 
   if (isError) {
-    return <p className="text-red-500">Error fetching projects</p>;
+    console.error("Query Error:", error);
+    return (
+      <p className="text-red-500">
+        Error fetching projects: {error?.message || "Unknown error"}
+      </p>
+    );
   }
 
-  const existingProjects = data?.data?.records || [];
-
-  const handleSaveProject = (projectData: ProjectData) => {
-    const exists = existingProjects.some(
-      (p: any) => p.title.toLowerCase() === projectData.title.toLowerCase()
-    );
-    if (exists) {
-      alert("Project already exists");
-      return;
-    }
-    addProjectMutation.mutate(projectData);
+  const handleNavigation = () => {
+    navigate({ to: "/projects/add" });
   };
-
-  const filteredProjects = existingProjects.filter((p: any) =>
-    p.title.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="w-full">
       {/* Top Bar */}
       <div className="flex items-center mb-6 w-full">
-        <div className="h-10 w-px bg-gray-300 mx-6 ml-250"></div>
+        <div className="h-10 w-px bg-gray-300 mx-6"></div>
         <div className="flex flex-col justify-around w-1/4">
           <span className="text-lg font-semibold">{formattedTime}</span>
           <span className="text-sm text-gray-500">{formattedDate}</span>
@@ -134,7 +108,7 @@ const Projects = () => {
             className="border px-3 py-2 rounded-lg w-1/3"
           />
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => handleNavigation()}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg"
           >
             + New Project
@@ -146,25 +120,34 @@ const Projects = () => {
       {/* Projects */}
       <div className="flex gap-6">
         <div className="w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredProjects.map((project: any) => (
-            <Card
-              key={project.id}
-              className="p-4 shadow-lg rounded-2xl hover:shadow-xl cursor-pointer"
-              onClick={() => {
-                setSelectedProjectId(project.id);
-                setShowDetails(false);
-              }}
-            >
-              <CardContent>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
-                    {project.title.charAt(0).toUpperCase()}
+          {filteredProjects.length === 0 ? (
+            <p className="text-gray-500 col-span-3 text-center py-6">
+              No projects available.
+            </p>
+          ) : (
+            filteredProjects.map((project: ProjectData) => (
+              <Card
+                key={project.id}
+                className="p-4 shadow-lg rounded-2xl hover:shadow-xl cursor-pointer"
+                onClick={() => {
+                  console.log("Selecting Project ID:", project.id);
+                  setSelectedProjectId(project.id ?? null);
+                  setShowDetails(false);
+                }}
+              >
+                <CardContent>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
+                      {project.title?.charAt(0).toUpperCase() || ""}
+                    </div>
+                    <h2 className="text-lg font-semibold">
+                      {project.title || "Untitled"}
+                    </h2>
                   </div>
-                  <h2 className="text-lg font-semibold">{project.title}</h2>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         {/* Project Details */}
@@ -174,52 +157,73 @@ const Projects = () => {
           ) : loadingProject ? (
             <p>Loading project details...</p>
           ) : errorProject ? (
-            <p className="text-red-500">Error loading project</p>
+            <p className="text-red-500">
+              Error loading project: {projectError?.message || "Unknown error"}
+            </p>
           ) : (
             <>
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-500 text-white font-bold text-2xl">
-                  {selectedProjectData?.data?.title?.charAt(0).toUpperCase()}
+                <div className="w-12 h-12 rounded-full bg-purple-500 text-white font-bold text-2xl flex items-center justify-center">
+                  {selectedProjectData?.data?.data?.title
+                    ?.charAt(0)
+                    .toUpperCase() || ""}
                 </div>
                 <h2 className="text-2xl font-bold">
-                  {selectedProjectData?.data?.title}
+                  {selectedProjectData?.data?.data?.title || "Unknown"}
                 </h2>
               </div>
               <h2 className="flex items-center justify-center text-semibold text-2xl">
                 About
               </h2>
               <p className="flex items-center justify-center mb-4 text-gray-600">
-                {selectedProjectData?.data?.description || "No Description"}
+                {selectedProjectData?.data?.data?.description ||
+                  "No Description"}
               </p>
 
               <button
                 onClick={() => setShowDetails((prev) => !prev)}
-                className="px-3 py-2 mb-4 bg-purple-600 text-white rounded-lg"
+                className="px-4 py-2 mb-6 bg-purple-600 text-white rounded-lg hover:bg-purplr-700"
               >
                 {showDetails ? "Hide Details" : "View"}
               </button>
 
               {showDetails && (
-                <div className="space-y-2 text-gray-700">
+                <div className="space-y-2 text-gray-700 w-full">
                   <p>
                     <strong>Status:</strong>{" "}
-                    {selectedProjectData?.data?.status || "NA"}
+                    {selectedProjectData?.data?.data?.project_status || "NA"}
                   </p>
                   <p>
                     <strong>Created By:</strong>{" "}
-                    {selectedProjectData?.data?.created_by || "NA"}
+                    {selectedProjectData?.data?.data?.created_by || "NA"}
                   </p>
                   <p>
                     <strong>Updated By:</strong>{" "}
-                    {selectedProjectData?.data?.updated_by || "NA"}
+                    {selectedProjectData?.data?.data?.updated_by || "NA"}
                   </p>
                   <p>
                     <strong>Start Date:</strong>{" "}
-                    {selectedProjectData?.data?.start_date || "NA"}
+                    {selectedProjectData?.data?.data?.start_date || "NA"}
                   </p>
                   <p>
                     <strong>Due Date:</strong>{" "}
-                    {selectedProjectData?.data?.due_date || "NA"}
+                    {selectedProjectData?.data?.data?.due_date || "NA"}
+                  </p>
+                  <p>
+                    <strong>Links:</strong>{" "}
+                    {Array.isArray(selectedProjectData?.data?.data?.links)
+                      ? selectedProjectData?.data?.data?.links.join(", ")
+                      : selectedProjectData?.data?.data?.links || "NA"}
+                  </p>
+                  <p>
+                    <strong>Assigned Users:</strong>{" "}
+                    {Array.isArray(
+                      selectedProjectData?.data?.data?.assigned_users
+                    )
+                      ? selectedProjectData?.data?.data?.assigned_users.join(
+                          ", "
+                        )
+                      : selectedProjectData?.data?.data?.assigned_users || "NA"}
                   </p>
                 </div>
               )}
@@ -227,21 +231,6 @@ const Projects = () => {
           )}
         </div>
       </div>
-
-      {/* Add Project Form */}
-      {showForm && (
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <AddProjectForm
-            nextId={
-              existingProjects.length > 0
-                ? Math.max(...existingProjects.map((p: any) => p.id)) + 1
-                : 1
-            }
-            onSave={handleSaveProject}
-            onCancel={() => setShowForm(false)}
-          />
-        </Dialog>
-      )}
     </div>
   );
 };
