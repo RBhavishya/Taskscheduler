@@ -9,7 +9,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import AddTaskForm from "src/components/AddTaskForm";
+import AddTaskForm from "@/components/AddTaskForm";
 
 const Tasks = () => {
   const navigate = useNavigate();

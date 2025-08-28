@@ -15,6 +15,7 @@ import { Route as LayoutTasksIndexRouteImport } from './routes/_layout/tasks/ind
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
 import { Route as LayoutNotificationsIndexRouteImport } from './routes/_layout/notifications/index'
 import { Route as LayoutDashboardIndexRouteImport } from './routes/_layout/dashboard/index'
+import { Route as LayoutProjectsAddIndexRouteImport } from './routes/_layout/projects/add/index'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -46,6 +47,11 @@ const LayoutDashboardIndexRoute = LayoutDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutProjectsAddIndexRoute = LayoutProjectsAddIndexRouteImport.update({
+  id: '/projects/add/',
+  path: '/projects/add/',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof LayoutNotificationsIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/tasks': typeof LayoutTasksIndexRoute
+  '/projects/add': typeof LayoutProjectsAddIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof LayoutNotificationsIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/tasks': typeof LayoutTasksIndexRoute
+  '/projects/add': typeof LayoutProjectsAddIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,12 +77,25 @@ export interface FileRoutesById {
   '/_layout/notifications/': typeof LayoutNotificationsIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/tasks/': typeof LayoutTasksIndexRoute
+  '/_layout/projects/add/': typeof LayoutProjectsAddIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/notifications' | '/projects' | '/tasks'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/notifications'
+    | '/projects'
+    | '/tasks'
+    | '/projects/add'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/notifications' | '/projects' | '/tasks'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/notifications'
+    | '/projects'
+    | '/tasks'
+    | '/projects/add'
   id:
     | '__root__'
     | '/'
@@ -83,6 +104,7 @@ export interface FileRouteTypes {
     | '/_layout/notifications/'
     | '/_layout/projects/'
     | '/_layout/tasks/'
+    | '/_layout/projects/add/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -134,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDashboardIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/projects/add/': {
+      id: '/_layout/projects/add/'
+      path: '/projects/add'
+      fullPath: '/projects/add'
+      preLoaderRoute: typeof LayoutProjectsAddIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -142,6 +171,7 @@ interface LayoutRouteChildren {
   LayoutNotificationsIndexRoute: typeof LayoutNotificationsIndexRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
   LayoutTasksIndexRoute: typeof LayoutTasksIndexRoute
+  LayoutProjectsAddIndexRoute: typeof LayoutProjectsAddIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -149,6 +179,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutNotificationsIndexRoute: LayoutNotificationsIndexRoute,
   LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
   LayoutTasksIndexRoute: LayoutTasksIndexRoute,
+  LayoutProjectsAddIndexRoute: LayoutProjectsAddIndexRoute,
 }
 
 const LayoutRouteWithChildren =

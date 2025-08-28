@@ -1,29 +1,24 @@
-import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
-import { Dialog } from "@/components/ui/dialog";
-import AddProjectForm, { ProjectData } from "./AddProjectForm";
-
-const BASE_API = "https://api-task-sheduler-org.onrender.com/v1.0";
-
+import { useNavigate } from "@tanstack/react-router";
+import { getAllProjectsAPI, getProjectByIdAPI } from "@/https/services/project";
+import { ProjectData } from "@/lib/interfaces/project";
 const Projects = () => {
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
     null
   );
   const [showDetails, setShowDetails] = useState(false);
+  const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
-
-  // Clock
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
   const formattedTime = time.toLocaleTimeString("en-GB");
   const formattedDate = time.toLocaleDateString("en-GB", {
     weekday: "long",
@@ -32,51 +27,30 @@ const Projects = () => {
   });
 
   // Fetch all projects
-  const fetchProjects = async () => {
-    const res = await fetch(`${BASE_API}/projects`);
-    if (!res.ok) throw new Error("Failed to fetch projects");
-    return res.json();
-  };
   const { data, isLoading, isError } = useQuery({
     queryKey: ["projects"],
-    queryFn: fetchProjects,
+    queryFn: getAllProjectsAPI,
   });
 
   // Fetch project by ID
-  const fetchProjectById = async (id: number) => {
-    const res = await fetch(`${BASE_API}/projects/${id}`);
-    if (!res.ok) throw new Error("Failed to fetch project details");
-    return res.json();
-  };
   const {
     data: selectedProjectData,
     isLoading: loadingProject,
     isError: errorProject,
   } = useQuery({
     queryKey: ["project", selectedProjectId],
-    queryFn: () => fetchProjectById(selectedProjectId!),
+    queryFn: () => getProjectByIdAPI(selectedProjectId!),
     enabled: !!selectedProjectId,
   });
 
-  // Mutation for adding new project
-  const addProjectMutation = useMutation({
-    mutationFn: async (newProject: ProjectData) => {
-      const res = await fetch(`${BASE_API}/projects`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newProject),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to add project");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      setShowForm(false);
-    },
-  });
+  const existingProjects = data?.data?.records || [];
+  const filteredProjects = existingProjects.filter((p: ProjectData) =>
+    p.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleNavigation = () => {
+    navigate({ to: "/projects/add" });
+  };
 
   if (isLoading) {
     return (
@@ -92,28 +66,11 @@ const Projects = () => {
     return <p className="text-red-500">Error fetching projects</p>;
   }
 
-  const existingProjects = data?.data?.records || [];
-
-  const handleSaveProject = (projectData: ProjectData) => {
-    const exists = existingProjects.some(
-      (p: any) => p.title.toLowerCase() === projectData.title.toLowerCase()
-    );
-    if (exists) {
-      alert("Project already exists");
-      return;
-    }
-    addProjectMutation.mutate(projectData);
-  };
-
-  const filteredProjects = existingProjects.filter((p: any) =>
-    p.title.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div className="w-full">
       {/* Top Bar */}
       <div className="flex items-center mb-6 w-full">
-        <div className="h-10 w-px bg-gray-300 mx-6 ml-250"></div>
+        <div className="h-10 w-px bg-gray-300 mx-6 ml-[250px]"></div>
         <div className="flex flex-col justify-around w-1/4">
           <span className="text-lg font-semibold">{formattedTime}</span>
           <span className="text-sm text-gray-500">{formattedDate}</span>
@@ -124,7 +81,7 @@ const Projects = () => {
 
       {/* Title & Controls */}
       <div className="flex items-center justify-between mb-7 px-4">
-        <h2 className="flex font-bold text-2xl mb-7">Projects</h2>
+        <h2 className="font-bold text-2xl">Projects</h2>
         <div className="flex items-center gap-3 flex-1 justify-end">
           <input
             type="text"
@@ -134,7 +91,7 @@ const Projects = () => {
             className="border px-3 py-2 rounded-lg w-1/3"
           />
           <button
-            onClick={() => setShowForm(true)}
+            onClick={handleNavigation}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg"
           >
             + New Project
@@ -146,12 +103,12 @@ const Projects = () => {
       {/* Projects */}
       <div className="flex gap-6">
         <div className="w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredProjects.map((project: any) => (
+          {filteredProjects.map((project: ProjectData) => (
             <Card
               key={project.id}
               className="p-4 shadow-lg rounded-2xl hover:shadow-xl cursor-pointer"
               onClick={() => {
-                setSelectedProjectId(project.id);
+                setSelectedProjectId(project.id ?? null);
                 setShowDetails(false);
               }}
             >
@@ -191,14 +148,12 @@ const Projects = () => {
               <p className="flex items-center justify-center mb-4 text-gray-600">
                 {selectedProjectData?.data?.description || "No Description"}
               </p>
-
               <button
                 onClick={() => setShowDetails((prev) => !prev)}
                 className="px-3 py-2 mb-4 bg-purple-600 text-white rounded-lg"
               >
                 {showDetails ? "Hide Details" : "View"}
               </button>
-
               {showDetails && (
                 <div className="space-y-2 text-gray-700">
                   <p>
@@ -221,27 +176,21 @@ const Projects = () => {
                     <strong>Due Date:</strong>{" "}
                     {selectedProjectData?.data?.due_date || "NA"}
                   </p>
+                  <p>
+                    <strong>Links:</strong>{" "}
+                    {selectedProjectData?.data?.links?.join(", ") || "NA"}
+                  </p>
+                  <p>
+                    <strong>Assigned Users:</strong>{" "}
+                    {selectedProjectData?.data?.assigned_users?.join(", ") ||
+                      "NA"}
+                  </p>
                 </div>
               )}
             </>
           )}
         </div>
       </div>
-
-      {/* Add Project Form */}
-      {showForm && (
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <AddProjectForm
-            nextId={
-              existingProjects.length > 0
-                ? Math.max(...existingProjects.map((p: any) => p.id)) + 1
-                : 1
-            }
-            onSave={handleSaveProject}
-            onCancel={() => setShowForm(false)}
-          />
-        </Dialog>
-      )}
     </div>
   );
 };
