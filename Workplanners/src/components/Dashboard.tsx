@@ -3,7 +3,7 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-} from "../components/ui/card";
+} from "./ui/card";
 import {
   Search,
   CalendarDays,
