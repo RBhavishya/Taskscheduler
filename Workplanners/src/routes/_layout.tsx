@@ -6,7 +6,6 @@ export const Route = createFileRoute("/_layout")({
 });
 
 function Layout() {
-  console.log("layout");
   return (
     <div className=" flex">
       <div className="">

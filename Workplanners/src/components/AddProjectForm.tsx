@@ -1,10 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export interface ProjectData {
-  id:number
+  id: number;
   title: string;
   description: string;
   links?: string[];
+  created_by: number;
+  start_date: string;
+  due_date?: string;
+  assigned_users: number[];
+}
+interface User {
+  id: number;
+  name: string;
 }
 
 interface AddProjectFormProps {
@@ -22,6 +31,47 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
   const [description, setDescription] = useState("");
   const [links, setLinks] = useState<string[]>([]);
   const [linkInput, setLinkInput] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [assignedUsers, setAssignedUsers] = useState<number[]>([]);
+  const [usersList, setUsersList] = useState<User[]>([]);
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (newProject: ProjectData) => {
+      const res = await fetch("https://api.example.com/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // if needed
+        },
+        body: JSON.stringify(newProject),
+      });
+      if (!res.ok) throw new Error("Failed to save project");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] }); // refresh project list
+      resetForm();
+      if (onCancel) onCancel();
+    },
+  });
+
+  // fetch users list
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("https://dummyjson.com/users");
+        const data = await res.json();
+        setUsersList(data.users);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const handleAddLink = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && linkInput.trim() !== "") {
@@ -35,17 +85,30 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
     setLinks(links.filter((_, i) => i !== index));
   };
 
+  const toggleAssignedUser = (id: number) => {
+    setAssignedUsers((prev) =>
+      prev.includes(id) ? prev.filter((uid) => uid !== id) : [...prev, id]
+    );
+  };
+
+  const toUTCDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toISOString().split("T")[0];
+  };
+
   const handleSave = () => {
-    const projectData: ProjectData & { id: number } = {
+    const projectData: ProjectData = {
       id: nextId,
       title,
       description,
       links,
+      created_by: Number(user.id),
+      start_date: toUTCDate(startDate),
+      due_date: dueDate ? toUTCDate(dueDate) : undefined,
+      assigned_users: assignedUsers,
     };
-    if (onSave) onSave(projectData);
-    console.log("Project Saved:", projectData);
-    resetForm();
-    if (onCancel) onCancel();
+    mutation.mutate(projectData);
   };
 
   const resetForm = () => {
@@ -53,6 +116,9 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
     setDescription("");
     setLinks([]);
     setLinkInput("");
+    setStartDate("");
+    setDueDate("");
+    setAssignedUsers([]);
   };
 
   return (
@@ -82,6 +148,52 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
         />
       </div>
 
+      
+
+      {/* Start Date */}
+      <div className="flex flex-col gap-2 mb-4">
+        <label className="text-sm font-medium">Start Date</label>
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
+          style={{
+            colorScheme: "light",
+          }}
+        />
+      </div>
+
+      {/* Due Date */}
+      <div className="flex flex-col gap-2 mb-4">
+        <label className="text-sm font-medium">Due Date</label>
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
+          style={{
+            colorScheme: "light",
+          }}
+        />
+      </div>
+
+      {/* Assigned Users */}
+      <div className="flex flex-col gap-2 mb-4">
+        <label className="text-sm font-medium">Assign Users</label>
+        <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
+          {usersList.map((u) => (
+            <label key={u.id} className="flex items-center gap-2 mb-1">
+              <input
+                type="checkbox"
+                checked={assignedUsers.includes(u.id)}
+                onChange={() => toggleAssignedUser(u.id)}
+              />
+              ({u.id}){u.name}
+            </label>
+          ))}
+        </div>
+      </div>
       {/* Project Links */}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Reference Links</label>
@@ -124,7 +236,7 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({
           onClick={handleSave}
           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
         >
-          Save
+          {mutation.isPending ? "Saving..." : "Save"}
         </button>
       </div>
     </div>

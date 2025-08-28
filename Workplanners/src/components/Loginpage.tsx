@@ -55,9 +55,18 @@ const Loginpage = () => {
       return res.json();
     },
     onSuccess: (data) => {
+      console.log(data?.data?.token?.access_token, "ggg001");
       if (data?.status === 200) {
-        localStorage.setItem("user", JSON.stringify(data?.user));
+        console.log("logggg");
+        const user = data?.data?.user;
+        const token = data?.data?.token?.access_token;
 
+        if (user && token) {
+          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("access_token", token.access_token);
+          localStorage.setItem("refresh_token", token.refresh_token);
+          localStorage.setItem("expires_at", token.expires_at.toString());
+        }
         navigate({ to: "/dashboard" });
       }
     },
