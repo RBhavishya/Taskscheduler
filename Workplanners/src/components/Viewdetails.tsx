@@ -8,7 +8,7 @@ const Viewdetails = () => {
   const { id } = useParams<{ id: string }>();
   const projectId = Number(id);
   const navigate = useNavigate();
-
+  console.log("a");
   // Fetch project details by ID
   const fetchProjectById = async () => {
     const res = await fetch(`${BASE_API}/projects/${projectId}`);
