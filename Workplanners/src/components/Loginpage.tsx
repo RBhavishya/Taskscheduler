@@ -1,15 +1,17 @@
 import * as React from "react";
-import { useNavigate, useLocation, useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+
 import loginimage from "../assets/loginimage.png";
 import slackicon from "../assets/slackicon.svg";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+
+import { slackAuthAPI, slackCallbackAPI } from "@/https/services/auth";
 
 const Loginpage = () => {
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as any;
-
-  const [code2, setCode2] = React.useState<string>();
+  const [code2, setCode2] = useState<string>();
 
   useEffect(() => {
     if (search?.code) {
@@ -18,14 +20,7 @@ const Loginpage = () => {
   }, [search]);
 
   const slackAuthMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch(
-        "https://api-task-sheduler-org.onrender.com/v1.0/auth/slack",
-        { method: "GET" }
-      );
-      if (!res.ok) throw new Error("Failed to start Slack login");
-      return res.json();
-    },
+    mutationFn: slackAuthAPI,
     onSuccess: (data) => {
       if (data?.data?.authUrl) {
         window.location.href = data.data.authUrl;
@@ -39,14 +34,7 @@ const Loginpage = () => {
   });
 
   const slackCallbackMutation = useMutation({
-    mutationFn: async (code: string) => {
-      const res = await fetch(
-        `https://api-task-sheduler-org.onrender.com/v1.0/auth/slack/callback?code=${code}`,
-        { method: "GET" }
-      );
-      if (!res.ok) throw new Error("Slack callback failed");
-      return res.json();
-    },
+    mutationFn: slackCallbackAPI,
     onSuccess: (data) => {
       if (data?.status === 200) {
         const user = data?.data?.user;
@@ -66,7 +54,6 @@ const Loginpage = () => {
     },
   });
 
-  // ✅ Fire callback when code is present
   useEffect(() => {
     if (code2) {
       slackCallbackMutation.mutate(code2);
