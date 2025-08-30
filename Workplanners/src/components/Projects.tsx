@@ -5,19 +5,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getAllProjectsAPI, getProjectByIdAPI } from "@/https/services/project";
 import { ProjectData } from "@/lib/interfaces/project";
 import { useNavigate } from "@tanstack/react-router";
+import { Pagination } from "./core/Pagination";
 
 const Projects = () => {
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
     null
   );
   const [showDetails, setShowDetails] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(4);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-
-  // Clock
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
@@ -28,17 +28,20 @@ const Projects = () => {
     day: "2-digit",
     month: "short",
   });
-
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["projects"],
+    queryKey: ["projects", page, pageSize, search],
     queryFn: async () => {
-      const result = await getAllProjectsAPI();
+      const queryParams = new URLSearchParams();
+      if (page) queryParams.append("page", page.toString());
+      if (pageSize) queryParams.append("page_size", pageSize.toString());
+      if (search) queryParams.append("search_string", search);
+
+      const result = await getAllProjectsAPI(queryParams.toString());
       return result;
     },
     retry: 3,
     refetchOnMount: true,
   });
-
   const {
     data: selectedProjectData,
     isLoading: loadingProject,
@@ -56,15 +59,18 @@ const Projects = () => {
     },
     enabled: !!selectedProjectId,
   });
-
   const existingProjects: ProjectData[] =
     data?.data?.data?.records && Array.isArray(data.data.data.records)
       ? data.data.data.records
       : [];
-  const filteredProjects: ProjectData[] = existingProjects.filter(
-    (p: ProjectData) => p.title?.toLowerCase().includes(search.toLowerCase())
-  );
-
+  const paginationDetails = {
+    total_records: data?.data?.data?.pagination_info?.total_records || 0,
+    total_pages: data?.data?.data?.pagination_info?.total_pages || 1,
+    current_page: data?.data?.data?.pagination_info?.current_page || 1,
+    page_size: data?.data?.data?.pagination_info?.page_size || pageSize,
+    next_page: data?.data?.data?.pagination_info?.next_page || null,
+    prev_page: data?.data?.data?.pagination_info?.prev_page || null,
+  };
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
@@ -74,7 +80,6 @@ const Projects = () => {
       </div>
     );
   }
-
   if (isError) {
     console.error("Query Error:", error);
     return (
@@ -83,11 +88,9 @@ const Projects = () => {
       </p>
     );
   }
-
   const handleNavigation = () => {
     navigate({ to: "/projects/add" });
   };
-
   return (
     <div className="w-full">
       {/* Top Bar */}
@@ -98,18 +101,19 @@ const Projects = () => {
           <span className="text-sm text-gray-500">{formattedDate}</span>
         </div>
       </div>
-
       <div className="w-full h-7 border-t border-gray-200"></div>
-
       {/* Title & Controls */}
       <div className="flex items-center justify-between mb-7 px-4">
-        <h2 className="flex font-bold text-2xl mb-7">Projects</h2>
+        <h2 className="font-bold text-2xl">Projects</h2>
         <div className="flex items-center gap-3 flex-1 justify-end">
           <input
             type="text"
             placeholder="Search project..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1); // Reset to first page on search
+            }}
             className="border px-3 py-2 rounded-lg w-1/3"
           />
           <button
@@ -121,16 +125,15 @@ const Projects = () => {
         </div>
       </div>
       <hr className="mb-4" />
-
       {/* Projects */}
       <div className="flex gap-6">
         <div className="w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredProjects.length === 0 ? (
+          {existingProjects.length === 0 ? (
             <p className="text-gray-500 col-span-3 text-center py-6">
               No projects available.
             </p>
           ) : (
-            filteredProjects.map((project: ProjectData) => (
+            existingProjects.map((project: ProjectData) => (
               <Card
                 key={project.id}
                 className="p-4 shadow-lg rounded-2xl hover:shadow-xl cursor-pointer"
@@ -154,7 +157,6 @@ const Projects = () => {
             ))
           )}
         </div>
-
         {/* Project Details */}
         <div className="w-1/3 bg-gray-50 p-6 rounded-xl shadow-inner">
           {!selectedProjectId ? (
@@ -184,16 +186,14 @@ const Projects = () => {
                 {selectedProjectData?.data?.data?.description ||
                   "No Description"}
               </p>
-
               <button
                 onClick={() => setShowDetails((prev) => !prev)}
-                className="px-4 py-2 mb-6 bg-purple-600 text-white rounded-lg hover:bg-purplr-700"
+                className="px-3 py-2 mb-4 bg-purple-600 text-white rounded-lg"
               >
                 {showDetails ? "Hide Details" : "View"}
               </button>
-
               {showDetails && (
-                <div className="space-y-2 text-gray-700 w-full">
+                <div className="space-y-2 text-gray-700">
                   <p>
                     <strong>Status:</strong>{" "}
                     {selectedProjectData?.data?.data?.project_status || "NA"}
@@ -236,8 +236,16 @@ const Projects = () => {
           )}
         </div>
       </div>
+      {/* Pagination */}
+      <div className="mt-6 px-4">
+        <Pagination
+          paginationDetails={paginationDetails}
+          pageSize={pageSize}
+          setPage={setPage}
+          setPageSize={setPageSize}
+        />
+      </div>
     </div>
   );
 };
-
 export default Projects;

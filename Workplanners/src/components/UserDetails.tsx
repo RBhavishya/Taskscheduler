@@ -45,25 +45,27 @@ const UserDetails: React.FC = () => {
   return (
     <div className="mb-6 w-full">
       {/* Top profile header */}
-      <div className="flex items-center space-x-4 mb-1">
-        <img
-          src={user.profile_pic}
-          alt={user.display_name}
-          className="h-12 w-12 rounded-full object-cover shadow-md"
-        />
-        <div>
-          <p className="font-semibold">{user.display_name}</p>
-          <p className="text-sm text-gray-500">
-            {getGreeting()}, {user.display_name}
-          </p>
-        </div>
-      </div>
-
       <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="profile">
-          <AccordionTrigger>User Details</AccordionTrigger>
+        <AccordionItem value="user">
+          <AccordionTrigger>
+            {/* Name + Greeting inside accordion header */}
+            <div className="flex items-center space-x-4">
+              <img
+                src={user.profile_pic}
+                alt={user.display_name}
+                className="h-12 w-12 rounded-full object-cover shadow-md"
+              />
+              <div className="text-left">
+                <p className="font-semibold">{user.display_name}</p>
+                <p className="text-sm text-gray-500">
+                  {getGreeting()}, {user.display_name}
+                </p>
+              </div>
+            </div>
+          </AccordionTrigger>
           <AccordionContent>
-            <div className="text-sm space-y-2">
+            {/* Expanded user details */}
+            <div className="text-sm space-y-2 mt-2">
               <p>
                 <span className="font-medium">Email:</span> {user.email}
               </p>

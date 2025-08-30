@@ -1,15 +1,30 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createProjectAPI } from "@/https/services/project";
-import { ProjectData, User } from "@/lib/interfaces/project";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronDown, Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { createProjectAPI, getAllUsersAPI } from "@/https/services/project";
+import { ProjectData, UsersDropdownResponse } from "@/lib/interfaces/project";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./ui/command";
+import { useNavigate } from "@tanstack/react-router";
+import { MoveLeft } from "lucide-react";
 interface AddProjectFormProps {
   nextId: number;
   onSave?: (data: ProjectData) => void;
   onCancel?: () => void;
 }
-
-const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCancel }) => {
+const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [links, setLinks] = useState<string[]>([]);
@@ -19,59 +34,50 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
   const [assignedUsers, setAssignedUsers] = useState<number[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [triggerWidth, setTriggerWidth] = useState<number | null>(null);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const queryClient = useQueryClient();
-
-  const {
-    data: usersList = [],
-    isLoading,
-    isError,
-  } = useQuery<User[]>({
+  const navigate = useNavigate();
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const { data: usersResp, isLoading } = useQuery<UsersDropdownResponse>({
     queryKey: ["users", search],
-    queryFn: async () => {
-      try {
-        const res = await fetch(
-          `https://api-task-sheduler-org.onrender.com/v1.0/users/dropdown?search_string=${search}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch users");
-        const json = await res.json();
-        return (json.data?.records || []).map((u: any) => ({
-          id: Number(u.id) || 0,
-          name: String(u.display_name || "Unknown"),
-        })) as User[];
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        throw error;
+    queryFn: () => getAllUsersAPI(search),
+    enabled: open,
+  });
+  const mutation = useMutation({
+    mutationFn: (newProject: ProjectData) => createProjectAPI(newProject),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      resetForm();
+      onCancel?.();
+      onSave?.(data.data);
+    },
+    onError: (error: any) => {
+      setErrors({});
+      setFormError(null);
+
+      if (error?.status === 422 && error?.data?.errData) {
+        setErrors(error.data.errData);
+      } else {
+        setFormError(error?.data?.message || "Failed to save project");
       }
     },
   });
-
-  const mutation = useMutation({
-    mutationFn: async (newProject: ProjectData) => {
-      const res = await fetch("https://api.example.com/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // if needed
-        },
-        body: JSON.stringify(newProject),
-      });
-      if (!res.ok) throw new Error("Failed to save project");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] }); // refresh project list
-      resetForm();
-      if (onCancel) onCancel();
-    },
-    onError: (error: any) => {
-      const errorMessage = error.message || "An unknown error occurred";
-      console.error("Error saving project:", errorMessage);
-      setFormError(`Failed to save project: ${errorMessage}`);
-    },
-  });
-
+  useEffect(() => {
+    if (triggerRef.current) {
+      setTriggerWidth(triggerRef.current.offsetWidth);
+    }
+  }, [open]);
+  const toggleUser = (id: number) => {
+    setAssignedUsers((prev) =>
+      prev.includes(id) ? prev.filter((uid) => uid !== id) : [...prev, id]
+    );
+  };
+  const removeUser = (id: number) =>
+    setAssignedUsers((prev) => prev.filter((uid) => uid !== id));
+  const removeAll = () => setAssignedUsers([]);
   const handleAddLink = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && linkInput.trim() !== "") {
       e.preventDefault();
@@ -79,25 +85,18 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
       setLinkInput("");
     }
   };
-
   const handleRemoveLink = (index: number) => {
     setLinks(links.filter((_, i) => i !== index));
   };
-
-  const toggleAssignedUser = (id: number) => {
-    setAssignedUsers((prev) =>
-      prev.includes(id) ? prev.filter((uid) => uid !== id) : [...prev, id]
-    );
-  };
-
   const toUTCDate = (dateStr: string) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
     return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
   };
-
   const handleSave = () => {
     setFormError(null);
+    setErrors({});
+
     const projectData: ProjectData = {
       id: nextId,
       title,
@@ -106,15 +105,12 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
       created_by: Number(user.id) || 0,
       start_date: toUTCDate(startDate),
       due_date: dueDate ? toUTCDate(dueDate) : "",
-      assigned_users: assignedUsers.length ? assignedUsers : [],
+      assigned_users: assignedUsers,
     };
-    if (onSave) {
-      onSave(projectData);
-    } else {
-      mutation.mutate(projectData);
-    }
-  };
 
+    if (onSave) onSave(projectData);
+    else mutation.mutate(projectData);
+  };
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -123,16 +119,33 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
     setStartDate("");
     setDueDate("");
     setAssignedUsers([]);
-    setFormError(null);
     setSearch("");
+    setFormError(null);
+    setErrors({});
   };
-
+  const handleNavigation = () => {
+    navigate({ to: "/projects" });
+  };
   return (
-    <div className="mt-6 p-6 bg-white shadow rounded-xl border max-w-lg">
-      <h2 className="text-lg font-semibold mb-4">Add Project</h2>
-      {formError && <p className="text-red-500 mb-4">{formError}</p>}
-
-      {/* Project Title */}
+    <div className="mt-6 ml-62 p-6 bg-white shadow rounded-xl border max-w-lg">
+      <div className="flex items-center justify-start gap-3 mb-4">
+        <span>
+          <button
+            onClick={handleNavigation}
+            className="px-2 py-2 text-gray rounded "
+          >
+            <MoveLeft className="mr-2" size={20} />
+          </button>
+        </span>
+        <span>
+          <h2 className="text-lg font-semibold ml-30">Add Project</h2>
+        </span>
+      </div>
+      {formError && (
+        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+          {formError}
+        </div>
+      )}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Title</label>
         <input
@@ -141,11 +154,11 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
-          aria-label="Project title"
         />
+        {errors.title && (
+          <p className="text-red-500 text-xs mt-1">{errors.title.join(", ")}</p>
+        )}
       </div>
-
-      {/* Project Description */}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Description</label>
         <textarea
@@ -153,75 +166,139 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
-          aria-label="Project description"
         />
+        {errors.description && (
+          <p className="text-red-500 text-xs mt-1">
+            {errors.description.join(", ")}
+          </p>
+        )}
       </div>
-
-      {/* Start Date */}
-      <div className="flex flex-col gap-2 mb-4">
-        <label className="text-sm font-medium">Start Date</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
-          style={{ colorScheme: "light" }}
-          aria-label="Start date"
-        />
-      </div>
-
-      {/* Due Date */}
-      <div className="flex flex-col gap-2 mb-4">
-        <label className="text-sm font-medium">Due Date</label>
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
-          style={{ colorScheme: "light" }}
-          aria-label="Due date"
-        />
-      </div>
-
-      {/* Search Users */}
-      <div className="flex flex-col gap-2 mb-4">
-        <label className="text-sm font-medium">Search Users</label>
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
-          aria-label="Search users"
-        />
-      </div>
-
-      {/* Assigned Users */}
-      <div className="flex flex-col gap-2 mb-4">
-        <label className="text-sm font-medium">Assign Users</label>
-        <div className="border rounded-lg p-3 max-h-40 overflow-y-auto">
-          {isLoading ? (
-            <p className="text-gray-500">Loading users...</p>
-          ) : isError ? (
-            <p className="text-red-500">Error loading users</p>
-          ) : usersList.length === 0 ? (
-            <p className="text-gray-500">No users found</p>
-          ) : (
-            usersList.map((u: User) => (
-              <label key={u.id} className="flex items-center gap-2 mb-1">
-                <input
-                  type="checkbox"
-                  checked={assignedUsers.includes(u.id)}
-                  onChange={() => toggleAssignedUser(u.id)}
-                  aria-label={`Assign user ${u.name}`}
-                />
-                ({u.id}) {u.name || "Unknown"}
-              </label>
-            ))
+      <div className="flex gap-4 mb-4">
+        <div className="flex flex-col gap-2 flex-1">
+          <label className="text-sm font-medium">Start Date</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
+            style={{ colorScheme: "light" }}
+          />
+          {errors.start_date && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.start_date.join(", ")}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-col gap-2 flex-1">
+          <label className="text-sm font-medium">Due Date</label>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
+            style={{ colorScheme: "light" }}
+          />
+          {errors.due_date && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.due_date.join(", ")}
+            </p>
           )}
         </div>
       </div>
-      {/* Project Links */}
+      <div className="flex flex-col gap-2 mb-4">
+        <label className="text-sm font-medium">Assign Users</label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <div
+              ref={triggerRef}
+              className="rounded border flex items-center justify-between px-2 py-2 cursor-pointer"
+            >
+              <div className="flex flex-wrap gap-1">
+                {assignedUsers.length === 0 ? (
+                  <span className="text-gray-400">Select users...</span>
+                ) : (
+                  assignedUsers.map((id) => {
+                    const user = usersResp?.data.data.records.find(
+                      (u) => u.id === id
+                    );
+                    return (
+                      <div
+                        key={id}
+                        className="flex items-center px-2 py-1 rounded bg-purple-100 text-sm gap-1"
+                      >
+                        <span>{user?.display_name ?? `User ${id}`}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeUser(id);
+                          }}
+                        >
+                          <X className="w-3 h-3 text-gray-500 hover:text-gray-700" />
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                {assignedUsers.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeAll();
+                    }}
+                  >
+                    <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                  </button>
+                )}
+                <ChevronDown />
+              </div>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent
+            style={{ width: triggerWidth ? `${triggerWidth}px` : "auto" }}
+            className="p-0"
+          >
+            <Command>
+              <CommandInput
+                placeholder="Search users..."
+                value={search}
+                onValueChange={setSearch}
+              />
+              <CommandList className="max-h-60 overflow-y-auto">
+                {isLoading ? (
+                  <div className="p-2 text-gray-500">Loading...</div>
+                ) : !usersResp?.data.data.records ||
+                  usersResp.data.data.records.length === 0 ? (
+                  <CommandEmpty>No users found.</CommandEmpty>
+                ) : (
+                  <CommandGroup>
+                    {usersResp.data.data.records.map((u) => (
+                      <CommandItem key={u.id} onSelect={() => toggleUser(u.id)}>
+                        <span>{u.display_name}</span>
+                        <Check
+                          className={cn(
+                            "h-4 w-4 ml-auto",
+                            assignedUsers.includes(u.id)
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        {errors.assigned_users && (
+          <p className="text-red-500 text-xs mt-1">
+            {errors.assigned_users.join(", ")}
+          </p>
+        )}
+      </div>
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Reference Links</label>
         <div className="border rounded-lg p-2 flex flex-wrap gap-2 min-h-[48px]">
@@ -235,7 +312,6 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
                 type="button"
                 className="text-xs text-purple-500 hover:text-purple-700"
                 onClick={() => handleRemoveLink(index)}
-                aria-label={`Remove link ${link}`}
               >
                 ✕
               </button>
@@ -248,17 +324,16 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
             onChange={(e) => setLinkInput(e.target.value)}
             onKeyDown={handleAddLink}
             className="flex-1 outline-none bg-transparent text-sm"
-            aria-label="Add project reference link"
           />
         </div>
+        {errors.links && (
+          <p className="text-red-500 text-xs mt-1">{errors.links.join(", ")}</p>
+        )}
       </div>
-
-      {/* Footer Buttons */}
       <div className="flex justify-end gap-2 mt-4">
         <button
           onClick={onCancel}
           className="px-4 py-2 border rounded-lg text-purple-500 hover:bg-gray-100"
-          aria-label="Cancel"
         >
           Cancel
         </button>
@@ -266,7 +341,6 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
           onClick={handleSave}
           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           disabled={mutation.isPending}
-          aria-label="Save project"
         >
           {mutation.isPending ? "Saving..." : "Save"}
         </button>
@@ -274,5 +348,4 @@ const AddProjectForm: React.FC<AddProjectFormProps> = ({ nextId, onSave, onCance
     </div>
   );
 };
-
 export default AddProjectForm;

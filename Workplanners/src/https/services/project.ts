@@ -1,11 +1,9 @@
-import { ProjectData } from "@/lib/interfaces/project";
+import { ProjectData,UsersDropdownResponse} from "@/lib/interfaces/project";
 import { $fetch } from "../fetch";
 
-export const getAllProjectsAPI = async () => {
+export const getAllProjectsAPI = async (queryParam: any) => {
   try {
-    const response = await $fetch.get(`/projects`);
-     console.log(response);
-    return response;
+    return await $fetch.get(`/projects?${queryParam}`);
   } catch (error) {
     throw error;
   }
@@ -29,10 +27,10 @@ export const createProjectAPI = async (newProject: ProjectData) => {
   }
 };
 
-export const getAllUsersAPI = async () => {
+export const getAllUsersAPI = async (search: string = ""): Promise<UsersDropdownResponse> => {
   try {
-    const response = await $fetch.get(`/users/dropdown`);
-    return response;
+    const response = await $fetch.get(`/users/dropdown?search_string=${encodeURIComponent(search)}`);
+   return response;
   } catch (error) {
     throw error;
   }
