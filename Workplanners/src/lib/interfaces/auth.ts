@@ -2,7 +2,7 @@ export interface SlackAuthResponse {
   success: boolean;
   status: number;
   data: {
-    authUrl: string;
+   data:{ authUrl: string;}
   };
   message?: string;
 }

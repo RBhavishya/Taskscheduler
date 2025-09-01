@@ -41,17 +41,32 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [errors, setErrors] = useState<Record<string, string[]>>({});
+
+  // Debounce hook (you can extract this into utils)
+  function useDebounce<T>(value: T, delay: number) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => setDebouncedValue(value), delay);
+      return () => clearTimeout(handler);
+    }, [value, delay]);
+
+    return debouncedValue;
+  }
+
+  const debouncedSearch = useDebounce(search, 400);
+
   const { data: usersResp, isLoading } = useQuery<UsersDropdownResponse>({
-    queryKey: ["users", search],
-    queryFn: () => getAllUsersAPI(search),
-    enabled: open,
+    queryKey: ["users", debouncedSearch],
+    queryFn: () => getAllUsersAPI(debouncedSearch),
+    enabled: true, // always enabled, but debouncedSearch ensures not too frequent
   });
+
   const mutation = useMutation({
     mutationFn: (newProject: ProjectData) => createProjectAPI(newProject),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       resetForm();
-      onCancel?.();
       onSave?.(data.data);
     },
     onError: (error: any) => {
@@ -88,10 +103,18 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
   const handleRemoveLink = (index: number) => {
     setLinks(links.filter((_, i) => i !== index));
   };
-  const toUTCDate = (dateStr: string) => {
+  const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
     return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
+  };
+  const today = new Date().toISOString().split("T")[0];
+
+  const getNextDay = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
   };
   const handleSave = () => {
     setFormError(null);
@@ -103,8 +126,8 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
       description,
       links: links.length ? links : [],
       created_by: Number(user.id) || 0,
-      start_date: toUTCDate(startDate),
-      due_date: dueDate ? toUTCDate(dueDate) : "",
+      start_date: formatDate(startDate),
+      due_date: dueDate ? formatDate(dueDate) : "",
       assigned_users: assignedUsers,
     };
 
@@ -179,7 +202,11 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
           <input
             type="date"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={(e) => {
+              setStartDate(formatDate(e.target.value));
+              setDueDate("");
+            }}
+            min={today}
             className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
             style={{ colorScheme: "light" }}
           />
@@ -194,7 +221,8 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
           <input
             type="date"
             value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
+            onChange={(e) => setDueDate(formatDate(e.target.value))}
+            min={getNextDay(startDate)}
             className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-purple-500"
             style={{ colorScheme: "light" }}
           />
@@ -266,6 +294,7 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
                 value={search}
                 onValueChange={setSearch}
               />
+
               <CommandList className="max-h-60 overflow-y-auto">
                 {isLoading ? (
                   <div className="p-2 text-gray-500">Loading...</div>
@@ -332,7 +361,7 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
       </div>
       <div className="flex justify-end gap-2 mt-4">
         <button
-          onClick={onCancel}
+          onClick={handleNavigation}
           className="px-4 py-2 border rounded-lg text-purple-500 hover:bg-gray-100"
         >
           Cancel
