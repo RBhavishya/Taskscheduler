@@ -21,9 +21,11 @@ const Loginpage = () => {
 
   const slackAuthMutation = useMutation({
     mutationFn: slackAuthAPI,
-    onSuccess: (data) => {
-      if (data?.data?.authUrl) {
-        window.location.href = data.data.authUrl;
+
+    onSuccess: (response) => {
+      const { data } = response?.data;
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
       } else {
         alert("Unable to start Slack login. Please try again.");
       }

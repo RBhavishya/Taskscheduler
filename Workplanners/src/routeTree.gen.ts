@@ -15,6 +15,7 @@ import { Route as LayoutTasksIndexRouteImport } from './routes/_layout/tasks/ind
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
 import { Route as LayoutNotificationsIndexRouteImport } from './routes/_layout/notifications/index'
 import { Route as LayoutDashboardIndexRouteImport } from './routes/_layout/dashboard/index'
+import { Route as LayoutProjectsViewIndexRouteImport } from './routes/_layout/projects/view/index'
 import { Route as LayoutProjectsTableIndexRouteImport } from './routes/_layout/projects/table/index'
 import { Route as LayoutProjectsAddIndexRouteImport } from './routes/_layout/projects/add/index'
 
@@ -48,6 +49,11 @@ const LayoutDashboardIndexRoute = LayoutDashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutProjectsViewIndexRoute = LayoutProjectsViewIndexRouteImport.update({
+  id: '/projects/view/',
+  path: '/projects/view/',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutProjectsTableIndexRoute =
   LayoutProjectsTableIndexRouteImport.update({
     id: '/projects/table/',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof LayoutTasksIndexRoute
   '/projects/add': typeof LayoutProjectsAddIndexRoute
   '/projects/table': typeof LayoutProjectsTableIndexRoute
+  '/projects/view': typeof LayoutProjectsViewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof LayoutTasksIndexRoute
   '/projects/add': typeof LayoutProjectsAddIndexRoute
   '/projects/table': typeof LayoutProjectsTableIndexRoute
+  '/projects/view': typeof LayoutProjectsViewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/_layout/tasks/': typeof LayoutTasksIndexRoute
   '/_layout/projects/add/': typeof LayoutProjectsAddIndexRoute
   '/_layout/projects/table/': typeof LayoutProjectsTableIndexRoute
+  '/_layout/projects/view/': typeof LayoutProjectsViewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/projects/add'
     | '/projects/table'
+    | '/projects/view'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/projects/add'
     | '/projects/table'
+    | '/projects/view'
   id:
     | '__root__'
     | '/'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/_layout/tasks/'
     | '/_layout/projects/add/'
     | '/_layout/projects/table/'
+    | '/_layout/projects/view/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -169,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutDashboardIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/projects/view/': {
+      id: '/_layout/projects/view/'
+      path: '/projects/view'
+      fullPath: '/projects/view'
+      preLoaderRoute: typeof LayoutProjectsViewIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/projects/table/': {
       id: '/_layout/projects/table/'
       path: '/projects/table'
@@ -193,6 +212,7 @@ interface LayoutRouteChildren {
   LayoutTasksIndexRoute: typeof LayoutTasksIndexRoute
   LayoutProjectsAddIndexRoute: typeof LayoutProjectsAddIndexRoute
   LayoutProjectsTableIndexRoute: typeof LayoutProjectsTableIndexRoute
+  LayoutProjectsViewIndexRoute: typeof LayoutProjectsViewIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -202,6 +222,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutTasksIndexRoute: LayoutTasksIndexRoute,
   LayoutProjectsAddIndexRoute: LayoutProjectsAddIndexRoute,
   LayoutProjectsTableIndexRoute: LayoutProjectsTableIndexRoute,
+  LayoutProjectsViewIndexRoute: LayoutProjectsViewIndexRoute,
 }
 
 const LayoutRouteWithChildren =

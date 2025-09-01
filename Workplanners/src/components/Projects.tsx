@@ -89,7 +89,10 @@ const Projects = () => {
     );
   }
   const handleNavigation = () => {
-    navigate({ to: "/projects/add" });
+    navigate({ to: `/projects/add` });
+  };
+  const handleView = (id:number) => {
+    navigate({ to: `/projects/view/${id}` });
   };
   return (
     <div className="w-full">
@@ -126,7 +129,7 @@ const Projects = () => {
       </div>
       <hr className="mb-4" />
       {/* Projects */}
-      <div className="flex gap-6">
+      <div className="flex gap-6 pb-24">
         <div className="w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
           {existingProjects.length === 0 ? (
             <p className="text-gray-500 col-span-3 text-center py-6">
@@ -186,12 +189,10 @@ const Projects = () => {
                 {selectedProjectData?.data?.data?.description ||
                   "No Description"}
               </p>
-              <button
-                onClick={() => setShowDetails((prev) => !prev)}
-                className="px-3 py-2 mb-4 bg-purple-600 text-white rounded-lg"
-              >
-                {showDetails ? "Hide Details" : "View"}
+              <button onClick={() => handleView(selectedProjectId!)}>
+                View
               </button>
+
               {showDetails && (
                 <div className="space-y-2 text-gray-700">
                   <p>
@@ -237,7 +238,13 @@ const Projects = () => {
         </div>
       </div>
       {/* Pagination */}
-      <div className="mt-6 px-4">
+      <div
+        className=" pb-4 px-4"
+        style={{
+          position: "fixed",
+          bottom: 0,
+        }}
+      >
         <Pagination
           paginationDetails={paginationDetails}
           pageSize={pageSize}

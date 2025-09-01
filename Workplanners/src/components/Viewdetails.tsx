@@ -1,14 +1,14 @@
 import * as React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 const BASE_API = "https://api-task-sheduler-org.onrender.com/v1.0";
 
 const Viewdetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams({ from: "/_layout/projects/view/$id" });
   const projectId = Number(id);
   const navigate = useNavigate();
-  console.log("a");
+
   // Fetch project details by ID
   const fetchProjectById = async () => {
     const res = await fetch(`${BASE_API}/projects/${projectId}`);
@@ -29,18 +29,17 @@ const Viewdetails = () => {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      {/* Header with title and action buttons */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{project.title}</h1>
         <div className="flex gap-3">
           <button
-            onClick={() => navigate(`/projects/edit/${project.id}`)}
+            onClick={() => navigate({ to: `/projects/edit/${project.id}` })}
             className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
           >
             Edit
           </button>
           <button
-            onClick={() => navigate(`/projects/delete/${project.id}`)}
+            onClick={() => navigate({ to: `/projects/delete/${project.id}` })}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
             Delete
@@ -48,12 +47,10 @@ const Viewdetails = () => {
         </div>
       </div>
 
-      {/* Description */}
       <p className="mb-4 text-gray-700">
         {project.description || "No Description"}
       </p>
 
-      {/* Project details */}
       <div className="space-y-2 text-gray-800">
         <p>
           <strong>Status:</strong> {project.status || "NA"}
@@ -71,7 +68,6 @@ const Viewdetails = () => {
           <strong>Due Date:</strong> {project.due_date || "NA"}
         </p>
 
-        {/* Assigned users if any */}
         {project.assigned_users?.length > 0 && (
           <p>
             <strong>Assigned Users:</strong> {project.assigned_users.join(", ")}
