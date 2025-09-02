@@ -2,9 +2,8 @@ import * as React from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-
-import loginimage from "../assets/loginimage.png";
-import slackicon from "../assets/slackicon.svg";
+import loginimage from "src/assets/loginimage.png";
+import slackicon from "src/assets/slackicon.svg";
 
 import { slackAuthAPI, slackCallbackAPI } from "@/https/services/auth";
 

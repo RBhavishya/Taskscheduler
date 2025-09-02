@@ -24,7 +24,7 @@ const Projects = () => {
   );
   const [showDetails, setShowDetails] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(4);
+  const [pageSize, setPageSize] = useState(16);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -163,7 +163,7 @@ const Projects = () => {
           <div className="flex items-center gap-2 px-1 py-1">
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-lg ${
+              className={`p-2 rounded-lg cursor-pointer ${
                 viewMode === "grid" ? "bg-purple-100 text-purple-600" : ""
               }`}
             >
@@ -171,7 +171,7 @@ const Projects = () => {
             </button>
             <button
               onClick={() => setViewMode("table")}
-              className={`p-2 rounded-lg ${
+              className={`p-2 rounded-lg  cursor-pointer${
                 viewMode === "table" ? "bg-purple-100 text-purple-600" : ""
               }`}
             >
@@ -196,7 +196,7 @@ const Projects = () => {
         {viewMode === "grid" ? (
           <>
             {/* Left side - Project Cards */}
-            <div className="w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="w-2/3 grid grid-cols-1 md:grid-cols-4 gap-2">
               {existingProjects.length === 0 ? (
                 <p className="text-gray-500 col-span-3 text-center py-6">
                   No projects available.
@@ -205,7 +205,7 @@ const Projects = () => {
                 existingProjects.map((project: ProjectData) => (
                   <Card
                     key={project.id}
-                    className="w-[212px] h-[212px] shadow-lg rounded-2xl hover:shadow-xl relative flex flex-col justify-center items-center cursor-pointer"
+                    className="w-[180px] h-[180px] shadow-lg rounded-2xl hover:shadow-xl relative flex flex-col justify-center items-center cursor-pointer"
                     onClick={() => {
                       setSelectedProjectId(project.id ?? null);
                       setShowDetails(false);
@@ -215,7 +215,7 @@ const Projects = () => {
                     <div className="absolute top-3 right-3">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="p-1 rounded-full hover:bg-gray-100">
+                          <button className="p-1 rounded-full hover:bg-gray-100 cursor-pointer">
                             <MoreVertical size={18} />
                           </button>
                         </DropdownMenuTrigger>
@@ -252,42 +252,53 @@ const Projects = () => {
               )}
             </div>
 
-            <div className="w-1/3 bg-gray-50 p-6 rounded-xl shadow-inner">
+            <div className="w-1/3 flex justify-center items-start">
               {!selectedProjectId ? (
-                <p className="text-gray-500">
+                <p className="text-gray-500 mt-10">
                   Select a project to view details
                 </p>
               ) : loadingProject ? (
-                <p>Loading project details...</p>
+                <p className="mt-10">Loading project details...</p>
               ) : errorProject ? (
-                <p className="text-red-500">
+                <p className="text-red-500 mt-10">
                   Error loading project:{" "}
                   {projectError?.message || "Unknown error"}
                 </p>
               ) : (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-purple-500 text-white font-bold text-2xl flex items-center justify-center">
+                <div className="w-full max-w-sm mx-auto bg-white shadow-lg rounded-2xl p-6 text-center">
+                  {/* Project Logo / Icon */}
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <span className="text-3xl text-blue-500 font-bold">
                       {selectedProjectData?.data?.data?.title
                         ?.charAt(0)
                         .toUpperCase() || ""}
-                    </div>
-                    <h2 className="text-2xl font-bold truncate max-w-[15ch]">
-                      {selectedProjectData?.data?.data?.title || "Unknown"}
-                    </h2>
+                    </span>
                   </div>
+
+                  {/* Title */}
+                  <h2 className="text-xl font-semibold text-gray-800 break-words">
+                    {selectedProjectData?.data?.data?.title || "Unknown"}
+                  </h2>
+
+                  {/* View Button */}
                   <button
                     onClick={() => handleView(selectedProjectId!)}
-                    className="px-7 py-1 rounded-full border border-gray-400 text-gray-600 mb-6"
+                    className="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition my-4 cursor-pointer"
                   >
                     View
                   </button>
-                  <h2 className="font-semibold text-xl mb-2">About Project</h2>
-                  <p className="text-gray-600">
-                    {selectedProjectData?.data?.data?.description ||
-                      "No Description"}
-                  </p>
-                </>
+
+                  {/* About Project */}
+                  <div className="text-left">
+                    <h3 className="font-semibold text-lg text-gray-800 mb-2">
+                      About Project
+                    </h3>
+                    <p className="text-sm text-gray-600 leading-relaxed break-words whitespace-pre-wrap max-h-60 overflow-y-auto">
+                      {selectedProjectData?.data?.data?.description ||
+                        "No description available."}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </>
@@ -300,7 +311,7 @@ const Projects = () => {
 
       {/* Pagination */}
       <div
-        className="pb-4 px-4"
+        className="pb-4 px-4 cursor-pointer"
         style={{
           position: "fixed",
           bottom: 0,

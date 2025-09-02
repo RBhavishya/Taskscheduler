@@ -1,4 +1,3 @@
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import {
   Search,
   ClipboardList,
@@ -11,7 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import Statisticstable from "./Statisticstable";
-import BigCard from "./core/Cards";
+import BigCard from "../core/Cards";
 
 const Dashboard = () => {
   const navigate = useNavigate();
