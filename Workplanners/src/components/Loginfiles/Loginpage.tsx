@@ -2,9 +2,8 @@ import * as React from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-
-import loginimage from "../assets/loginimage.png";
-import slackicon from "../assets/slackicon.svg";
+import loginimage from "src/assets/loginimage.png";
+import slackicon from "src/assets/slackicon.svg";
 
 import { slackAuthAPI, slackCallbackAPI } from "@/https/services/auth";
 
@@ -38,9 +37,10 @@ const Loginpage = () => {
   const slackCallbackMutation = useMutation({
     mutationFn: slackCallbackAPI,
     onSuccess: (data) => {
+      console.log(data);
       if (data?.status === 200) {
-        const user = data?.data?.user;
-        const token = data?.data?.token;
+        const user = data?.data?.data.user;
+        const token = data?.data?.data.token;
 
         if (user && token) {
           localStorage.setItem("user", JSON.stringify(user));

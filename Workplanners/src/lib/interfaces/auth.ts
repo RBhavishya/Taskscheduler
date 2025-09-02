@@ -11,10 +11,12 @@ export interface SlackCallbackResponse {
   success: boolean;
   status: number;
   data: {
+    data:{
     user: {
       id: number;
       name: string;
       email?: string;
+    
     };
     token: {
       access_token: string;
@@ -22,5 +24,6 @@ export interface SlackCallbackResponse {
       expires_at: number;
     };
   };
+};
   message?: string;
 }

@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronDown, Check, X } from "lucide-react";
+import { ChevronDown, X, CheckCircle, MoveLeft, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createProjectAPI, getAllUsersAPI } from "@/https/services/project";
 import { ProjectData, UsersDropdownResponse } from "@/lib/interfaces/project";
@@ -16,9 +16,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "./ui/command";
+} from "../ui/command";
 import { useNavigate } from "@tanstack/react-router";
-import { MoveLeft } from "lucide-react";
 interface AddProjectFormProps {
   nextId: number;
   onSave?: (data: ProjectData) => void;
@@ -40,6 +39,8 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const [errors, setErrors] = useState<Record<string, string[]>>({});
 
   // Debounce hook (you can extract this into utils)
@@ -68,6 +69,9 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       resetForm();
       onSave?.(data.data);
+
+      setSuccessMessage(data.message || "Project created successfully");
+      setTimeout(() => setSuccessMessage(null), 2000);
     },
     onError: (error: any) => {
       setErrors({});
@@ -125,7 +129,7 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
       title,
       description,
       links: links.length ? links : [],
-      created_by: Number(user.id) || 0,
+      created_by: String(user.name),
       start_date: formatDate(startDate),
       due_date: dueDate ? formatDate(dueDate) : "",
       assigned_users: assignedUsers,
@@ -155,9 +159,9 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
         <span>
           <button
             onClick={handleNavigation}
-            className="px-2 py-2 text-gray rounded "
+            className="px-2 py-2 text-gray rounded cursor-pointer "
           >
-            <MoveLeft className="mr-2" size={20} />
+            <MoveLeft className="mr-2 " size={20} />
           </button>
         </span>
         <span>
@@ -169,6 +173,12 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
           {formError}
         </div>
       )}
+      {successMessage && (
+  <div className="mb-4 flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 animate-fade-in">
+    <CheckCircle className="w-5 h-5 text-green-500" />
+    <span>{successMessage}</span>
+  </div>
+)}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Title</label>
         <input
@@ -261,7 +271,7 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
                             removeUser(id);
                           }}
                         >
-                          <X className="w-3 h-3 text-gray-500 hover:text-gray-700" />
+                          <X className="w-3 h-3 text-gray-500 hover:text-gray-700 cursor-pointer" />
                         </button>
                       </div>
                     );
@@ -277,7 +287,7 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
                       removeAll();
                     }}
                   >
-                    <X className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                    <X className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
                   </button>
                 )}
                 <ChevronDown />
@@ -339,7 +349,7 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
               {link}
               <button
                 type="button"
-                className="text-xs text-purple-500 hover:text-purple-700"
+                className="text-xs text-purple-500 hover:text-purple-700 cursor-pointer"
                 onClick={() => handleRemoveLink(index)}
               >
                 ✕
@@ -362,13 +372,13 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
       <div className="flex justify-end gap-2 mt-4">
         <button
           onClick={handleNavigation}
-          className="px-4 py-2 border rounded-lg text-purple-500 hover:bg-gray-100"
+          className="px-4 py-2 border rounded-lg text-purple-500 hover:bg-gray-100 cursor-pointer"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer"
           disabled={mutation.isPending}
         >
           {mutation.isPending ? "Saving..." : "Save"}

@@ -13,11 +13,10 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutTasksIndexRouteImport } from './routes/_layout/tasks/index'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
-import { Route as LayoutNotificationsIndexRouteImport } from './routes/_layout/notifications/index'
 import { Route as LayoutDashboardIndexRouteImport } from './routes/_layout/dashboard/index'
-import { Route as LayoutProjectsViewIndexRouteImport } from './routes/_layout/projects/view/index'
 import { Route as LayoutProjectsTableIndexRouteImport } from './routes/_layout/projects/table/index'
 import { Route as LayoutProjectsAddIndexRouteImport } from './routes/_layout/projects/add/index'
+import { Route as LayoutProjectsViewIdIndexRouteImport } from './routes/_layout/projects/view/$id/index'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -38,20 +37,9 @@ const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
   path: '/projects/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutNotificationsIndexRoute =
-  LayoutNotificationsIndexRouteImport.update({
-    id: '/notifications/',
-    path: '/notifications/',
-    getParentRoute: () => LayoutRoute,
-  } as any)
 const LayoutDashboardIndexRoute = LayoutDashboardIndexRouteImport.update({
   id: '/dashboard/',
   path: '/dashboard/',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutProjectsViewIndexRoute = LayoutProjectsViewIndexRouteImport.update({
-  id: '/projects/view/',
-  path: '/projects/view/',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutProjectsTableIndexRoute =
@@ -65,71 +53,71 @@ const LayoutProjectsAddIndexRoute = LayoutProjectsAddIndexRouteImport.update({
   path: '/projects/add/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutProjectsViewIdIndexRoute =
+  LayoutProjectsViewIdIndexRouteImport.update({
+    id: '/projects/view/$id/',
+    path: '/projects/view/$id/',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof LayoutDashboardIndexRoute
-  '/notifications': typeof LayoutNotificationsIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/tasks': typeof LayoutTasksIndexRoute
   '/projects/add': typeof LayoutProjectsAddIndexRoute
   '/projects/table': typeof LayoutProjectsTableIndexRoute
-  '/projects/view': typeof LayoutProjectsViewIndexRoute
+  '/projects/view/$id': typeof LayoutProjectsViewIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof LayoutDashboardIndexRoute
-  '/notifications': typeof LayoutNotificationsIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/tasks': typeof LayoutTasksIndexRoute
   '/projects/add': typeof LayoutProjectsAddIndexRoute
   '/projects/table': typeof LayoutProjectsTableIndexRoute
-  '/projects/view': typeof LayoutProjectsViewIndexRoute
+  '/projects/view/$id': typeof LayoutProjectsViewIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_layout': typeof LayoutRouteWithChildren
   '/_layout/dashboard/': typeof LayoutDashboardIndexRoute
-  '/_layout/notifications/': typeof LayoutNotificationsIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/tasks/': typeof LayoutTasksIndexRoute
   '/_layout/projects/add/': typeof LayoutProjectsAddIndexRoute
   '/_layout/projects/table/': typeof LayoutProjectsTableIndexRoute
-  '/_layout/projects/view/': typeof LayoutProjectsViewIndexRoute
+  '/_layout/projects/view/$id/': typeof LayoutProjectsViewIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/notifications'
     | '/projects'
     | '/tasks'
     | '/projects/add'
     | '/projects/table'
-    | '/projects/view'
+    | '/projects/view/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
-    | '/notifications'
     | '/projects'
     | '/tasks'
     | '/projects/add'
     | '/projects/table'
-    | '/projects/view'
+    | '/projects/view/$id'
   id:
     | '__root__'
     | '/'
     | '/_layout'
     | '/_layout/dashboard/'
-    | '/_layout/notifications/'
     | '/_layout/projects/'
     | '/_layout/tasks/'
     | '/_layout/projects/add/'
     | '/_layout/projects/table/'
-    | '/_layout/projects/view/'
+    | '/_layout/projects/view/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -167,25 +155,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProjectsIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/notifications/': {
-      id: '/_layout/notifications/'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof LayoutNotificationsIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/dashboard/': {
       id: '/_layout/dashboard/'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof LayoutDashboardIndexRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/projects/view/': {
-      id: '/_layout/projects/view/'
-      path: '/projects/view'
-      fullPath: '/projects/view'
-      preLoaderRoute: typeof LayoutProjectsViewIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/projects/table/': {
@@ -202,27 +176,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProjectsAddIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/projects/view/$id/': {
+      id: '/_layout/projects/view/$id/'
+      path: '/projects/view/$id'
+      fullPath: '/projects/view/$id'
+      preLoaderRoute: typeof LayoutProjectsViewIdIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
   LayoutDashboardIndexRoute: typeof LayoutDashboardIndexRoute
-  LayoutNotificationsIndexRoute: typeof LayoutNotificationsIndexRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
   LayoutTasksIndexRoute: typeof LayoutTasksIndexRoute
   LayoutProjectsAddIndexRoute: typeof LayoutProjectsAddIndexRoute
   LayoutProjectsTableIndexRoute: typeof LayoutProjectsTableIndexRoute
-  LayoutProjectsViewIndexRoute: typeof LayoutProjectsViewIndexRoute
+  LayoutProjectsViewIdIndexRoute: typeof LayoutProjectsViewIdIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutDashboardIndexRoute: LayoutDashboardIndexRoute,
-  LayoutNotificationsIndexRoute: LayoutNotificationsIndexRoute,
   LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
   LayoutTasksIndexRoute: LayoutTasksIndexRoute,
   LayoutProjectsAddIndexRoute: LayoutProjectsAddIndexRoute,
   LayoutProjectsTableIndexRoute: LayoutProjectsTableIndexRoute,
-  LayoutProjectsViewIndexRoute: LayoutProjectsViewIndexRoute,
+  LayoutProjectsViewIdIndexRoute: LayoutProjectsViewIdIndexRoute,
 }
 
 const LayoutRouteWithChildren =

@@ -1,10 +1,4 @@
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "./ui/card";
-import {
   Search,
   ClipboardList,
   ClipboardCheck,
@@ -16,10 +10,19 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import Statisticstable from "./Statisticstable";
+import BigCard from "../core/Cards";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());
+
+  interface AppCardProps {
+    title: string;
+    value: number | string;
+    icon: React.ReactNode;
+    bg: string;
+    route: string;
+  }
 
   // Month pickers
   const [startMonth, setStartMonth] = useState<Date | null>(new Date());
@@ -36,41 +39,6 @@ const Dashboard = () => {
     day: "2-digit",
     month: "short",
   });
-
-  const cards = [
-    {
-      id: 1,
-      bg: "#F1E7FF",
-      title: "Total Tasks",
-      value: 0,
-      icon: <ClipboardList className="w-10 h-10 text-purple-400" />,
-      route: "/details/1",
-    },
-    {
-      id: 2,
-      bg: "#E5F5FF",
-      title: "Completed Tasks",
-      value: 0,
-      icon: <ClipboardCheck className="w-10 h-10 text-blue-400" />,
-      route: "/details/2",
-    },
-    {
-      id: 3,
-      bg: "#FFEFE7",
-      title: "In Progress Tasks",
-      value: 0,
-      icon: <ClipboardPenLine className="w-10 h-10 text-orange-400" />,
-      route: "/details/3",
-    },
-    {
-      id: 4,
-      bg: "#EBFEEF",
-      title: "Pending Tasks",
-      value: 0,
-      icon: <FileClock className="w-10 h-10 text-green-400" />,
-      route: "/details/4",
-    },
-  ];
 
   return (
     <div className="p-4">
@@ -133,29 +101,26 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Task cards */}
+          {/* cards */}
           <div className="flex rounded gap-4">
-            {cards.map((card, index) => (
-              <Card
-                key={index}
-                onClick={() => navigate({ to: card.route })}
-                className="cursor-pointer hover:shadow-lg transition-shadow rounded-3xl"
-                style={{
-                  width: "210px",
-                  height: "140px",
-                  flexShrink: 0,
-                  background: card.bg,
-                }}
-              >
-                <CardHeader>
-                  <CardTitle>{card.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex justify-between items-center px-9">
-                  <span className="text-3xl font-bold">{card.value}</span>
-                  {card.icon}
-                </CardContent>
-              </Card>
-            ))}
+            <div className="flex flex-wrap gap-4">
+              <BigCard
+                title="Total Tasks"
+                value={29}
+                icon={<ClipboardList />}
+              />
+              <BigCard
+                title="Completed Tasks"
+                value={24}
+                icon={<ClipboardCheck />}
+              />
+              <BigCard
+                title="In Progress Task"
+                value={3}
+                icon={<ClipboardPenLine />}
+              />
+              <BigCard title="Pending Tasks" value={1} icon={<FileClock />} />
+            </div>
           </div>
         </div>
         <Statisticstable />
