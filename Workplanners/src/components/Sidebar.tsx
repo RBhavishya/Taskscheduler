@@ -6,7 +6,7 @@ import {
   NotebookPen,
   Bell,
 } from "lucide-react";
-import UserDetails from "./UserDetails";
+import UserDetails from "./Loginfiles/UserDetails";
 
 const Sidebar = () => {
   return (
@@ -43,15 +43,6 @@ const Sidebar = () => {
         >
           <NotebookPen className="mr-2" size={20} />
           Projects
-        </Link>
-
-        <Link
-          to="/notifications"
-          className="flex items-center px-3 py-2 rounded text-gray-500 hover:bg-purple-100"
-          activeProps={{ className: "bg-purple-100 text-purple-500 font-bold" }}
-        >
-          <Bell className="mr-2" size={20} />
-          Notifications
         </Link>
       </nav>
     </aside>

@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     port: 3000,
     allowedHosts: [
-      'b499a29fe227.ngrok-free.app',
+      'ec10559e431b.ngrok-free.app',
     ],
   },
   plugins: [

@@ -76,7 +76,7 @@ export const Pagination = ({
   );
 
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className="flex items-center justify-between w-full bottom:0 left:0 overflow-none">
       {/* Left Section: Page size & showing text */}
       <div className="bg-white rounded flex flex-cols ">
         <div className="flex items-center gap-3">

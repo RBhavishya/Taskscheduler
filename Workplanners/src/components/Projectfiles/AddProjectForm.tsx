@@ -16,7 +16,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "./ui/command";
+} from "../ui/command";
 import { useNavigate } from "@tanstack/react-router";
 import { MoveLeft } from "lucide-react";
 interface AddProjectFormProps {
@@ -125,7 +125,7 @@ const AddProjectForm = ({ nextId, onSave, onCancel }: AddProjectFormProps) => {
       title,
       description,
       links: links.length ? links : [],
-      created_by: Number(user.id) || 0,
+      created_by: String(user.name),
       start_date: formatDate(startDate),
       due_date: dueDate ? formatDate(dueDate) : "",
       assigned_users: assignedUsers,
