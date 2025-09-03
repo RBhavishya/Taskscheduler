@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { MoreVertical, Filter, LayoutGrid, List } from "lucide-react";
-import Tanstacktable from "src/components/core/Tanstacktable";
+import ProjectsTable from "src/components/Projectfiles/ProjectsTable";
 const Projects = () => {
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
@@ -320,7 +320,7 @@ const Projects = () => {
           </>
         ) : (
           <div className="w-full">
-            <Tanstacktable />
+            < ProjectsTable projects={existingProjects}  />
           </div>
         )}
       </div>

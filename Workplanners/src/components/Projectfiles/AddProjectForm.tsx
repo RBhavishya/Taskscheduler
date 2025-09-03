@@ -7,7 +7,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, ChevronDown, X, CheckCircle, MoveLeft, Check } from "lucide-react";
+import {
+  CalendarIcon,
+  ChevronDown,
+  X,
+  CheckCircle,
+  MoveLeft,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   createProjectAPI,
@@ -331,100 +338,105 @@ const AddProjectForm = ({
           )}
         </div>
       </div>
-      <div className="flex flex-col gap-2 mb-4">
-        <label className="text-sm font-medium">Assign Users</label>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <div
-              ref={triggerRef}
-              className="rounded border flex items-center justify-between px-2 py-2 cursor-pointer"
-            >
-              <div className="flex flex-wrap gap-1">
-                {assignedUsers.length === 0 ? (
-                  <span className="text-gray-400">Select users...</span>
-                ) : (
-                  assignedUsers.map((id) => {
-                    const user = Array.isArray(usersResp?.data?.data)
-                      ? usersResp.data.data.find((u) => u.id === id)
-                      : null;
-                    return (
-                      <div
-                        key={id}
-                        className="flex items-center px-2 py-1 rounded bg-purple-100 text-sm gap-1"
-                      >
-                        <span>{user?.display_name ?? `User ${id}`}</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeUser(id);
-                          }}
+      {mode === "create" && (
+        <div className="flex flex-col gap-2 mb-4">
+          <label className="text-sm font-medium">Assign Users</label>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <div
+                ref={triggerRef}
+                className="rounded border flex items-center justify-between px-2 py-2 cursor-pointer"
+              >
+                <div className="flex flex-wrap gap-1">
+                  {assignedUsers.length === 0 ? (
+                    <span className="text-gray-400">Select users...</span>
+                  ) : (
+                    assignedUsers.map((id) => {
+                      const user = Array.isArray(usersResp?.data?.data)
+                        ? usersResp.data.data.find((u) => u.id === id)
+                        : null;
+                      return (
+                        <div
+                          key={id}
+                          className="flex items-center px-2 py-1 rounded bg-purple-100 text-sm gap-1"
                         >
-                          <X className="w-3 h-3 text-gray-500 hover:text-gray-700 cursor-pointer" />
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
+                          <span>{user?.display_name ?? `User ${id}`}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeUser(id);
+                            }}
+                          >
+                            <X className="w-3 h-3 text-gray-500 hover:text-gray-700 cursor-pointer" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  {assignedUsers.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeAll();
+                      }}
+                    >
+                      <X className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
+                    </button>
+                  )}
+                  <ChevronDown />
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                {assignedUsers.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeAll();
-                    }}
-                  >
-                    <X className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
-                  </button>
-                )}
-                <ChevronDown />
-              </div>
-            </div>
-          </PopoverTrigger>
-          <PopoverContent
-            style={{ width: triggerWidth ? `${triggerWidth}px` : "auto" }}
-            className="p-0"
-          >
-            <Command>
-              <CommandInput
-                placeholder="Search users..."
-                value={search}
-                onValueChange={setSearch}
-              />
-              <CommandList className="max-h-60 overflow-y-auto">
-                {isLoading ? (
-                  <div className="p-2 text-gray-500">Loading...</div>
-                ) : !Array.isArray(usersResp?.data.data) ||
-                  usersResp?.data.data.length === 0 ? (
-                  <CommandEmpty>No users found.</CommandEmpty>
-                ) : (
-                  <CommandGroup>
-                    {usersResp.data.data.map((u) => (
-                      <CommandItem key={u.id} onSelect={() => toggleUser(u.id)}>
-                        <span>{u.display_name}</span>
-                        <Check
-                          className={cn(
-                            "h-4 w-4 ml-auto",
-                            assignedUsers.includes(u.id)
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        {errors.assigned_users && (
-          <p className="text-red-500 text-xs mt-1">
-            {errors.assigned_users.join(", ")}
-          </p>
-        )}
-      </div>
+            </PopoverTrigger>
+            <PopoverContent
+              style={{ width: triggerWidth ? `${triggerWidth}px` : "auto" }}
+              className="p-0"
+            >
+              <Command>
+                <CommandInput
+                  placeholder="Search users..."
+                  value={search}
+                  onValueChange={setSearch}
+                />
+                <CommandList className="max-h-60 overflow-y-auto">
+                  {isLoading ? (
+                    <div className="p-2 text-gray-500">Loading...</div>
+                  ) : !Array.isArray(usersResp?.data.data) ||
+                    usersResp?.data.data.length === 0 ? (
+                    <CommandEmpty>No users found.</CommandEmpty>
+                  ) : (
+                    <CommandGroup>
+                      {usersResp.data.data.map((u) => (
+                        <CommandItem
+                          key={u.id}
+                          onSelect={() => toggleUser(u.id)}
+                        >
+                          <span>{u.display_name}</span>
+                          <Check
+                            className={cn(
+                              "h-4 w-4 ml-auto",
+                              assignedUsers.includes(u.id)
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          {errors.assigned_users && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.assigned_users.join(", ")}
+            </p>
+          )}
+        </div>
+      )}
       <div className="flex flex-col gap-2 mb-4">
         <label className="text-sm font-medium">Project Reference Links</label>
         <div className="border rounded-lg p-2 flex flex-wrap gap-2 min-h-[48px]">
@@ -473,8 +485,8 @@ const AddProjectForm = ({
               ? "Updating..."
               : "Update"
             : mutation.isPending
-            ? "Saving..."
-            : "Save"}
+              ? "Saving..."
+              : "Save"}
         </button>
       </div>
     </div>
