@@ -106,7 +106,7 @@ const Projects = () => {
   }
 
   const handleNavigation = () => navigate({ to: `/projects/add` });
-  const handleView = (id: number) => navigate({ to: `/projects/view/${id}` });
+  const handleView = (id: number) => navigate({ to: `/projects/${id}` });
 
   return (
     <div className="w-full p-4">

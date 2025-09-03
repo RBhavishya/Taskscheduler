@@ -2,9 +2,9 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getProjectByIdAPI } from "@/https/services/project";
 import { useState, useEffect } from "react";
-import ProjectTable from "../core/Tanstacktable";
+import TasksInProjectTable from "../core/Sampletable";
 const Viewdetails = () => {
-  const { id } = useParams({ from: "/_layout/projects/view/$id/" });
+  const { id } = useParams({ from: "/_layout/projects/$id/" });
 
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
@@ -30,6 +30,7 @@ const Viewdetails = () => {
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error loading project</p>;
   const projectdata = data?.data.data;
+  console.log(projectdata);
   if (!projectdata) return <p>No project found</p>;
 
   const handleNavigation = () => {
@@ -52,12 +53,13 @@ const Viewdetails = () => {
         {/* Content split into 2/3 and 1/3 */}
         <div className="flex gap-6">
           {/* Table Section (2/3) */}
-          <div className="w-2/3">
-            <ProjectTable />
+          {/* Table Section (2/3) */}
+          <div className="w-75%">
+            <TasksInProjectTable projectId={Number(id)} />
           </div>
 
           {/* Details Section (1/3) */}
-          <div className="w-1/3 border border-gray-200 rounded-3xl ">
+          <div className="w-25% border border-gray-200 rounded-3xl ">
             <div className="flex flex-col w-full p-4">
               <div className="text-2xl font-bold mb-4">Details</div>
               <div className="text-xl font-semibold mb-2">

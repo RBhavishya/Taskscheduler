@@ -16,7 +16,8 @@ import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projec
 import { Route as LayoutDashboardIndexRouteImport } from './routes/_layout/dashboard/index'
 import { Route as LayoutProjectsTableIndexRouteImport } from './routes/_layout/projects/table/index'
 import { Route as LayoutProjectsAddIndexRouteImport } from './routes/_layout/projects/add/index'
-import { Route as LayoutProjectsViewIdIndexRouteImport } from './routes/_layout/projects/view/$id/index'
+import { Route as LayoutProjectsIdIndexRouteImport } from './routes/_layout/projects/$id/index'
+import { Route as LayoutProjectsEditIdIndexRouteImport } from './routes/_layout/projects/edit/$id/index'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -53,10 +54,15 @@ const LayoutProjectsAddIndexRoute = LayoutProjectsAddIndexRouteImport.update({
   path: '/projects/add/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutProjectsViewIdIndexRoute =
-  LayoutProjectsViewIdIndexRouteImport.update({
-    id: '/projects/view/$id/',
-    path: '/projects/view/$id/',
+const LayoutProjectsIdIndexRoute = LayoutProjectsIdIndexRouteImport.update({
+  id: '/projects/$id/',
+  path: '/projects/$id/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutProjectsEditIdIndexRoute =
+  LayoutProjectsEditIdIndexRouteImport.update({
+    id: '/projects/edit/$id/',
+    path: '/projects/edit/$id/',
     getParentRoute: () => LayoutRoute,
   } as any)
 
@@ -65,18 +71,20 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof LayoutDashboardIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/tasks': typeof LayoutTasksIndexRoute
+  '/projects/$id': typeof LayoutProjectsIdIndexRoute
   '/projects/add': typeof LayoutProjectsAddIndexRoute
   '/projects/table': typeof LayoutProjectsTableIndexRoute
-  '/projects/view/$id': typeof LayoutProjectsViewIdIndexRoute
+  '/projects/edit/$id': typeof LayoutProjectsEditIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof LayoutDashboardIndexRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/tasks': typeof LayoutTasksIndexRoute
+  '/projects/$id': typeof LayoutProjectsIdIndexRoute
   '/projects/add': typeof LayoutProjectsAddIndexRoute
   '/projects/table': typeof LayoutProjectsTableIndexRoute
-  '/projects/view/$id': typeof LayoutProjectsViewIdIndexRoute
+  '/projects/edit/$id': typeof LayoutProjectsEditIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -85,9 +93,10 @@ export interface FileRoutesById {
   '/_layout/dashboard/': typeof LayoutDashboardIndexRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/tasks/': typeof LayoutTasksIndexRoute
+  '/_layout/projects/$id/': typeof LayoutProjectsIdIndexRoute
   '/_layout/projects/add/': typeof LayoutProjectsAddIndexRoute
   '/_layout/projects/table/': typeof LayoutProjectsTableIndexRoute
-  '/_layout/projects/view/$id/': typeof LayoutProjectsViewIdIndexRoute
+  '/_layout/projects/edit/$id/': typeof LayoutProjectsEditIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,18 +105,20 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/projects'
     | '/tasks'
+    | '/projects/$id'
     | '/projects/add'
     | '/projects/table'
-    | '/projects/view/$id'
+    | '/projects/edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
     | '/projects'
     | '/tasks'
+    | '/projects/$id'
     | '/projects/add'
     | '/projects/table'
-    | '/projects/view/$id'
+    | '/projects/edit/$id'
   id:
     | '__root__'
     | '/'
@@ -115,9 +126,10 @@ export interface FileRouteTypes {
     | '/_layout/dashboard/'
     | '/_layout/projects/'
     | '/_layout/tasks/'
+    | '/_layout/projects/$id/'
     | '/_layout/projects/add/'
     | '/_layout/projects/table/'
-    | '/_layout/projects/view/$id/'
+    | '/_layout/projects/edit/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -176,11 +188,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProjectsAddIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/projects/view/$id/': {
-      id: '/_layout/projects/view/$id/'
-      path: '/projects/view/$id'
-      fullPath: '/projects/view/$id'
-      preLoaderRoute: typeof LayoutProjectsViewIdIndexRouteImport
+    '/_layout/projects/$id/': {
+      id: '/_layout/projects/$id/'
+      path: '/projects/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof LayoutProjectsIdIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/projects/edit/$id/': {
+      id: '/_layout/projects/edit/$id/'
+      path: '/projects/edit/$id'
+      fullPath: '/projects/edit/$id'
+      preLoaderRoute: typeof LayoutProjectsEditIdIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
   }
@@ -190,18 +209,20 @@ interface LayoutRouteChildren {
   LayoutDashboardIndexRoute: typeof LayoutDashboardIndexRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
   LayoutTasksIndexRoute: typeof LayoutTasksIndexRoute
+  LayoutProjectsIdIndexRoute: typeof LayoutProjectsIdIndexRoute
   LayoutProjectsAddIndexRoute: typeof LayoutProjectsAddIndexRoute
   LayoutProjectsTableIndexRoute: typeof LayoutProjectsTableIndexRoute
-  LayoutProjectsViewIdIndexRoute: typeof LayoutProjectsViewIdIndexRoute
+  LayoutProjectsEditIdIndexRoute: typeof LayoutProjectsEditIdIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutDashboardIndexRoute: LayoutDashboardIndexRoute,
   LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
   LayoutTasksIndexRoute: LayoutTasksIndexRoute,
+  LayoutProjectsIdIndexRoute: LayoutProjectsIdIndexRoute,
   LayoutProjectsAddIndexRoute: LayoutProjectsAddIndexRoute,
   LayoutProjectsTableIndexRoute: LayoutProjectsTableIndexRoute,
-  LayoutProjectsViewIdIndexRoute: LayoutProjectsViewIdIndexRoute,
+  LayoutProjectsEditIdIndexRoute: LayoutProjectsEditIdIndexRoute,
 }
 
 const LayoutRouteWithChildren =
