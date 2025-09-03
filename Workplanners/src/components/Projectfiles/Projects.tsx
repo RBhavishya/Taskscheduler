@@ -301,29 +301,28 @@ const Projects = () => {
                 </div>
               )}
             </div>
+            {/* Pagination */}
+            <div
+              className="pb-4 px-4 cursor-pointer"
+              style={{
+                position: "fixed",
+                bottom: 0,
+                overflow: "hidden",
+              }}
+            >
+              <Pagination
+                paginationDetails={paginationDetails}
+                pageSize={pageSize}
+                setPage={setPage}
+                setPageSize={setPageSize}
+              />
+            </div>
           </>
         ) : (
           <div className="w-full">
             <Tanstacktable />
           </div>
         )}
-      </div>
-
-      {/* Pagination */}
-      <div
-        className="pb-4 px-4 cursor-pointer"
-        style={{
-          position: "fixed",
-          bottom: 0,
-          overflow: "hidden",
-        }}
-      >
-        <Pagination
-          paginationDetails={paginationDetails}
-          pageSize={pageSize}
-          setPage={setPage}
-          setPageSize={setPageSize}
-        />
       </div>
     </div>
   );
