@@ -1,6 +1,6 @@
 export interface User {
   id: number;
-  name: string;
+  display_name: string; 
 }
 
 export interface ProjectData {
@@ -16,33 +16,27 @@ export interface ProjectData {
   assigned_users?: number[];
 }
 
-
 export interface CreateProjectResponse {
   success: boolean;
   status: number;
   data: ProjectData;
   message?: string;
 }
-export interface UsersDropdownResponse {
-  status: number;
-  success: boolean;
-  data: {
-    data: {
-      pagination_info: {
-        total_records: number;
-        total_pages: number;
-        page_size: number;
-        current_page: number;
-        next_page: number | null;
-        prev_page: number | null;
-      };
-      records: Array<{
-        id: number;
-        display_name: string;
-      }>;
-    };
-  };
+
+export interface User {
+  id: number;
+  display_name: string;
 }
+
+export interface UsersDropdownResponse {
+  success: boolean;
+  status: number;
+  message?: string;
+  data:{
+    data: User[];
+  }
+}
+
 
 export interface IAPIResponse {
   data: {
@@ -57,6 +51,7 @@ export interface IAPIResponse {
   success: boolean;
   message?: string;
 }
+
 export interface GetAllProjectsParams {
   order_by?: string;
   page?: number;
@@ -64,7 +59,25 @@ export interface GetAllProjectsParams {
   search_string?: string;
 }
 
+export interface Task {
+  id: number;
+  task_title: string;
+  task_status: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+}
 
-
-
-
+export interface TaskResponse {
+  data: {
+      records?: Task[];
+      pagination_info?: {
+        total_records: number;
+        total_pages: number;
+        page_size: number;
+        current_page: number;
+        next_page: number | null;
+        prev_page: number | null;
+      };
+    };
+}

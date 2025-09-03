@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { MoreVertical, Filter, LayoutGrid, List } from "lucide-react";
-import Tanstacktable from "src/components/core/Tanstacktable";
+import ProjectsTable from "src/components/Projectfiles/ProjectsTable";
 const Projects = () => {
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
@@ -24,7 +24,7 @@ const Projects = () => {
   );
   const [showDetails, setShowDetails] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(16);
+  const [pageSize, setPageSize] = useState(25);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -81,7 +81,7 @@ const Projects = () => {
     total_records: data?.data?.data?.pagination_info?.total_records || 0,
     total_pages: data?.data?.data?.pagination_info?.total_pages || 1,
     current_page: data?.data?.data?.pagination_info?.current_page || 1,
-    page_size: data?.data?.data?.pagination_info?.page_size || pageSize,
+    page_size: data?.data?.data?.pagination_info?.page_size || 25,
     next_page: data?.data?.data?.pagination_info?.next_page || null,
     prev_page: data?.data?.data?.pagination_info?.prev_page || null,
   };
@@ -106,7 +106,7 @@ const Projects = () => {
   }
 
   const handleNavigation = () => navigate({ to: `/projects/add` });
-  const handleView = (id: number) => navigate({ to: `/projects/view/${id}` });
+  const handleView = (id: number) => navigate({ to: `/projects/${id}` });
 
   return (
     <div className="w-full p-4">
@@ -301,28 +301,28 @@ const Projects = () => {
                 </div>
               )}
             </div>
+            {/* Pagination */}
+            <div
+              className="pb-4 px-4 cursor-pointer"
+              style={{
+                position: "fixed",
+                bottom: 0,
+                overflow: "hidden",
+              }}
+            >
+              <Pagination
+                paginationDetails={paginationDetails}
+                pageSize={pageSize}
+                setPage={setPage}
+                setPageSize={setPageSize}
+              />
+            </div>
           </>
         ) : (
           <div className="w-full">
-            <Tanstacktable />
+            < ProjectsTable projects={existingProjects}  />
           </div>
         )}
-      </div>
-
-      {/* Pagination */}
-      <div
-        className="pb-4 px-4 cursor-pointer"
-        style={{
-          position: "fixed",
-          bottom: 0,
-        }}
-      >
-        <Pagination
-          paginationDetails={paginationDetails}
-          pageSize={pageSize}
-          setPage={setPage}
-          setPageSize={setPageSize}
-        />
       </div>
     </div>
   );

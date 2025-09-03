@@ -10,8 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import Statisticstable from "./Statisticstable";
-import BigCard from "../core/Cards";
-
+import BigCard from "@/components/core/Cards";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [time, setTime] = useState(new Date());

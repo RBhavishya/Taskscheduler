@@ -2,13 +2,11 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getProjectByIdAPI } from "@/https/services/project";
 import { useState, useEffect } from "react";
-import ProjectTable from "../core/Tanstacktable";
-const Viewdetails = () => {
-  const { id } = useParams({ from: "/_layout/projects/view/$id/" });
+import TasksInProjectTable from "../core/Sampletable";
 
+const Viewdetails = () => {
+  const { id } = useParams({ from: "/_layout/projects/$id/" });
   const [time, setTime] = useState(new Date());
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
   const Navigate = useNavigate();
 
   const { data, isLoading, error } = useQuery({
@@ -20,6 +18,7 @@ const Viewdetails = () => {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
   const formattedTime = time.toLocaleTimeString("en-GB");
   const formattedDate = time.toLocaleDateString("en-GB", {
     weekday: "long",
@@ -29,14 +28,21 @@ const Viewdetails = () => {
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error loading project</p>;
+
   const projectdata = data?.data.data;
   if (!projectdata) return <p>No project found</p>;
 
   const handleNavigation = () => {
     Navigate({ to: `/projects/add` });
   };
+
+  // Format date to yyyy-mm-dd
+  const formatDate = (dateStr: string | null) =>
+    dateStr ? new Date(dateStr).toLocaleDateString("en-CA") : "NA";
+
   return (
     <div className="p-4">
+      {/* Clock & Date */}
       <div className="flex items-center mb-6 w-full">
         <div className="h-10 w-px bg-gray-300 mx-6"></div>
         <div className="flex flex-col justify-around w-1/4">
@@ -44,42 +50,49 @@ const Viewdetails = () => {
           <span className="text-sm text-gray-500">{formattedDate}</span>
         </div>
       </div>
-      <div className="w-full h-7 border-t border-gray-200"></div>
-      <div className="w-full min-h-[600px] bg-white rounded-3xl shadow-lg p-6">
-        {/* Title */}
-        <div className="text-2xl font-bold mb-4">{projectdata.title}</div>
 
-        {/* Content split into 2/3 and 1/3 */}
-        <div className="flex gap-6">
-          {/* Table Section (2/3) */}
-          <div className="w-2/3">
-            <ProjectTable />
+      {/* Top Project Info Box */}
+      <div className="border border-gray-300 rounded-xl p-4 mb-6 bg-gray-50">
+        <div className="flex items-center gap-3 mb-2">
+          {/* Logo with first char */}
+          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-600 text-white text-xl font-bold">
+            {projectdata.title?.charAt(0) || "P"}
           </div>
+          <div className="flex items-center gap-[3px] text-xl font-semibold">
+            <span>{projectdata.title}</span>
+            <span className="text-sm text-gray-600">
+              ({projectdata.project_status || "NA"})
+            </span>
+          </div>
+        </div>
+        {/* Description */}
+        <p className="text-gray-700 mt-2">
+          {projectdata.description || "No description available"}
+        </p>
+      </div>
 
-          {/* Details Section (1/3) */}
-          <div className="w-1/3 border border-gray-200 rounded-3xl ">
-            <div className="flex flex-col w-full p-4">
-              <div className="text-2xl font-bold mb-4">Details</div>
-              <div className="text-xl font-semibold mb-2">
-                {projectdata.title}
-              </div>
-              <p>
-                <strong>Status:</strong> {projectdata.project_status || "NA"}
-              </p>
-              <p>
-                <strong>Created By:</strong> {projectdata.created_by || "NA"}
-              </p>
-              <p>
-                <strong>Updated By:</strong> {projectdata.updated_by || "NA"}
-              </p>
-              <p>
-                <strong>Start Date:</strong> {projectdata.start_date || "NA"}
-              </p>
-              <p>
-                <strong>Due Date:</strong> {projectdata.due_date || "NA"}
-              </p>
-            </div>
-          </div>
+      {/* Main White Container */}
+      <div className="border border-gray-200 bg-white rounded-3xl shadow-lg p-6 flex gap-6 min-h-[600px]">
+        {/* Table Section (2/3) */}
+        <div className="w-2/3">
+          <TasksInProjectTable projectId={Number(id)} />
+        </div>
+
+        {/* Details Section (1/3) */}
+        <div className="w-1/3 border border-gray-200 rounded-3xl p-4">
+          <div className="text-2xl font-bold mb-4">Details</div>
+          <p className="mb-2">
+            <strong>Created By:</strong> {projectdata.created_by || "NA"}
+          </p>
+          <p className="mb-2">
+            <strong>Updated By:</strong> {projectdata.updated_by || "NA"}
+          </p>
+          <p className="mb-2">
+            <strong>Start Date:</strong> {formatDate(projectdata.start_date)}
+          </p>
+          <p className="mb-2">
+            <strong>Due Date:</strong> {formatDate(projectdata.due_date)}
+          </p>
         </div>
       </div>
     </div>
