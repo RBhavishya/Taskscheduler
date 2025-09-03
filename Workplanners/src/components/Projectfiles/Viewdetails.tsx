@@ -50,16 +50,13 @@ const Viewdetails = () => {
         {/* Title */}
         <div className="text-2xl font-bold mb-4">{projectdata.title}</div>
 
-        {/* Content split into 2/3 and 1/3 */}
         <div className="flex gap-6">
-          {/* Table Section (2/3) */}
-          {/* Table Section (2/3) */}
-          <div className="w-75%">
+          <div className="w-2/3">
             <TasksInProjectTable projectId={Number(id)} />
           </div>
 
           {/* Details Section (1/3) */}
-          <div className="w-25% border border-gray-200 rounded-3xl ">
+          <div className="w-1/3 border border-gray-200 rounded-3xl ">
             <div className="flex flex-col w-full p-4">
               <div className="text-2xl font-bold mb-4">Details</div>
               <div className="text-xl font-semibold mb-2">

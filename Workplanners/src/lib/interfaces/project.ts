@@ -70,7 +70,9 @@ export interface Task {
 
 export interface TaskResponse {
   data: {
+    data:{
       records?: Task[];
+  }
       pagination_info?: {
         total_records: number;
         total_pages: number;
@@ -80,4 +82,34 @@ export interface TaskResponse {
         prev_page: number | null;
       };
     };
+}
+
+export interface ProjectTableData {
+  projectId: number;
+  projectName: string;
+  projectLogoUrl: string | null;
+  projectStatus: string;
+  users: ProjectTableUser[];
+}
+
+export interface ProjectTableUser {
+  userId: number;
+  displayName: string;
+}
+export interface ProjectTablePaginationInfo {
+  total_records: number;
+  total_pages: number;
+  page_size: number;
+  current_page: number;
+  next_page: number | null;
+  prev_page: number | null;
+}
+export interface ProjectTableAPIResponse {
+  status: number;
+  success: boolean;
+  message?: string;
+  data: {
+    records: ProjectTableData[];
+    pagination_info: ProjectTablePaginationInfo;
+  };
 }

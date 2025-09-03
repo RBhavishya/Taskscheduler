@@ -15,21 +15,28 @@ interface TasksTableProps {
 }
 
 const TasksTable: React.FC<TasksTableProps> = ({ projectId }) => {
-  // Fetch tasks using useQuery directly
+  
   const { data, isLoading, error } = useQuery<TaskResponse, Error>({
     queryKey: ["tasks", projectId],
     queryFn: () => getTasksByProjectId(projectId),
-    enabled: !!projectId, // only fetch if projectId exists
+    enabled: !!projectId, 
   });
 
-  console.log(data); // For debugging
 
-  // Define columns for TanStack Table
+ 
   const taskColumns: ColumnDef<Task>[] = [
     { header: "S.No", accessorFn: (_row, index) => index + 1 },
     { header: "Task Name", accessorKey: "task_title" },
-    { header: "Start Date", accessorKey: "start_date" },
-    { header: "Due Date", accessorKey: "end_date" },
+    { header: "Start Date", accessorKey: "start_date" ,cell: ({ row }) => (
+      <div>
+        {new Date(row.getValue("start_date")).toLocaleDateString("en-CA")}
+      </div>
+    ),},
+    { header: "Due Date", accessorKey: "end_date" ,cell: ({ row }) => (
+      <div>
+        {new Date(row.getValue("end_date")).toLocaleDateString("en-CA")}
+      </div>
+    ),},
     { header: "Status", accessorKey: "task_status" },
     {
       header: "Actions",
@@ -47,9 +54,9 @@ const TasksTable: React.FC<TasksTableProps> = ({ projectId }) => {
     },
   ];
 
-  // Initialize TanStack Table
+  
   const table = useReactTable({
-    data: data?.data.data.records || [], // Correct path to records, with fallback to empty array
+    data: data?.data.data.records || [], 
     columns: taskColumns,
     getCoreRowModel: getCoreRowModel(),
   });

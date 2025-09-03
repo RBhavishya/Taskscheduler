@@ -1,4 +1,4 @@
-import { ProjectData,UsersDropdownResponse, TaskResponse} from "@/lib/interfaces/project";
+import { ProjectData,UsersDropdownResponse, TaskResponse, GetAllProjectsParams, IAPIResponse} from "@/lib/interfaces/project";
 import { $fetch } from "../fetch";
 
 export const getAllProjectsAPI = async (queryParam: any) => {
@@ -51,5 +51,28 @@ export const getTasksByProjectId = async (projectId: number): Promise<TaskRespon
     return response;
   } catch (error) {
     throw error;
+  }
+};
+
+
+export const getProjectsForTable = async (params: GetAllProjectsParams): Promise<IAPIResponse> => {
+  try {
+    const query = new URLSearchParams({
+      page: (params.page ?? 1).toString(),
+      page_size: (params.page_size ?? 10).toString(),
+      ...(params.order_by && { order_by: params.order_by }),
+      ...(params.search_string && { search_string: params.search_string }),
+    }).toString();
+    return await $fetch.get(`/projects?${query}`);
+  } catch (error) {
+    throw new Error('Failed to fetch projects for table');
+  }
+};
+
+export const deleteProjectForTable = async (projectId: number): Promise<void> => {
+  try {
+    await $fetch.delete(`/projects/${projectId}`);
+  } catch (error) {
+    throw new Error('Failed to delete project');
   }
 };

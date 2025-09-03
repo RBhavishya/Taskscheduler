@@ -1,132 +1,186 @@
+// components/ProjectsTable.tsx
 import React from "react";
 import {
   useReactTable,
-  ColumnDef,
   getCoreRowModel,
   flexRender,
+  ColumnDef,
 } from "@tanstack/react-table";
-import { Eye, Edit, Trash } from "lucide-react";
-import { ProjectData } from "@/lib/interfaces/project";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { deleteProjectForTable, getProjectsForTable } from "@/https/services/project";
+import {Edit, Trash, Eye} from "lucide-react";  
+import { ProjectTableAPIResponse, ProjectTableData, ProjectTableUser } from "@/lib/interfaces/project";
 
-interface ProjectsTableProps {
-  projects: ProjectData[];
-  onView: (id: number) => void;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
-}
+const ProjectsTable: React.FC = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const pageSize = 10;
+  const [pageIndex, setPageIndex] = React.useState(0);
 
-const statusColors: Record<string, string> = {
-  NEW: "bg-purple-100 text-purple-600",
-  PROGRESS: "bg-blue-100 text-blue-600",
-  REVIEW: "bg-yellow-100 text-yellow-700",
-  OVERDUE: "bg-red-100 text-red-600",
-  DONE: "bg-green-100 text-green-600",
-};
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["projectsTable", pageIndex, pageSize],
+    queryFn: () =>
+      getProjectsForTable({ page: pageIndex + 1, page_size: pageSize }),
+  });
 
-const ProjectsTable: React.FC<ProjectsTableProps> = ({
-  projects,
-  onView,
-  onEdit,
-  onDelete,
-}) => {
-  const columns = React.useMemo<ColumnDef<ProjectData>[]>(
-    () => [
-      {
-        header: "S. NO",
-        cell: (info) => info.row.index + 1,
-      },
-      {
-        header: "Project Name",
-        accessorKey: "title",
-        cell: ({ row }) => {
-          const project = row.original;
-          return (
-            <div className="flex items-center gap-2">
-              {project.logo_url ? (
-                <img
-                  src={project.logo_url}
-                  alt={project.title}
-                  className="w-8 h-8 rounded-md"
-                />
-              ) : (
-                <div className="w-8 h-8 flex items-center justify-center rounded-md bg-purple-500 text-white font-bold">
-                  {project.title?.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span className="font-medium">{project.title}</span>
+  const deleteMutation = useMutation({
+    mutationFn: deleteProjectForTable,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["projectsTable", pageIndex, pageSize],
+      });
+    },
+  });
+
+  const projects = data?.data.records ?? [];
+  const totalPages = data?.data.pagination_info.total_pages ?? 1;
+
+  const columns: ColumnDef<ProjectTableData>[] = [
+    {
+      id: "serial",
+      header: "S.No",
+      cell: ({ row }) => row.index + 1 + pageIndex * pageSize,
+    },
+    {
+      accessorKey: "projectName",
+      header: "Project Name",
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {row.original.projectLogoUrl ? (
+            <img
+              src={row.original.projectLogoUrl}
+              alt="Project Logo"
+              className="w-6 h-6 rounded-full mr-2 object-cover"
+            />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs mr-2">
+              {row.original.projectName[0]?.toUpperCase()}
             </div>
-          );
-        },
-      },
-      {
-        header: "Assigned User",
-        cell: () => (
-          <div className="flex -space-x-2">
-            {["P", "G", "M"].map((u, idx) => (
-              <div
-                key={idx}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-purple-400 text-white text-xs font-bold border-2 border-white"
-              >
-                {u}
-              </div>
-            ))}
-            <span className="ml-2 text-gray-500 text-sm">3+</span>
-          </div>
-        ),
-      },
-      {
-        header: "Status",
-        accessorKey: "project_status",
-        cell: ({ getValue }) => {
-          const status = getValue<string>();
-          const cls =
-            statusColors[status] || "bg-gray-100 text-gray-600";
-          return (
-            <span
-              className={`px-3 py-1 rounded-md text-xs font-medium ${cls}`}
+          )}
+          <span>{row.original.projectName}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "users",
+      header: "Assigned Users",
+      cell: ({ getValue }) => (
+        <div className="flex -space-x-2">
+          {(getValue() as ProjectTableUser[])?.map((user) => (
+            <div
+              key={user.userId}
+              className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs border-2 border-white"
             >
-              {status}
-            </span>
-          );
-        },
-      },
-      {
-        header: "Actions",
-        cell: ({ row }) => {
-          const project = row.original;
-          return (
-            <div className="flex gap-2 text-gray-600">
-              <button onClick={() => onView(project.id)}>
-                <Eye size={18} />
-              </button>
-              <button onClick={() => onEdit(project.id)}>
-                <Edit size={18} />
-              </button>
-              <button onClick={() => onDelete(project.id)}>
-                <Trash size={18} />
-              </button>
+              {user.displayName[0]?.toUpperCase()}
             </div>
-          );
-        },
-      },
-    ],
-    [onView, onEdit, onDelete]
-  );
+          ))}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "projectStatus",
+      header: "Status",
+      cell: ({ getValue }) => {
+        const status = getValue<string>().toUpperCase();
+        let color = "bg-gray-500";
+        let displayStatus = status;
 
-  const table = useReactTable({
+        switch (status) {
+          case "NEW":
+            color = "bg-blue-500";
+            displayStatus = "New";
+            break;
+          case "INPROGRESS":
+            color = "bg-yellow-500";
+            displayStatus = "In Progress";
+            break;
+          case "OVERDUE":
+            color = "bg-red-500";
+            displayStatus = "Overdue";
+            break;
+          case "COMPLETED":
+          case "DONE":
+            color = "bg-green-500";
+            displayStatus = "Done";
+            break;
+          case "REVIEW":
+            color = "bg-purple-500";
+            displayStatus = "Review";
+            break;
+        }
+
+        return (
+          <span className={`px-2 py-1 rounded text-white text-sm ${color}`}>
+            {displayStatus}
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex space-x-3">
+          <button
+            onClick={() => navigate(`/projects/view/${row.original.projectId}`)}
+            className="text-blue-500 hover:text-blue-700"
+          >
+            <Eye />
+          </button>
+          <button
+            onClick={() => navigate(`/projects/edit/${row.original.projectId}`)}
+            className="text-green-500 hover:text-green-700"
+          >
+            <Edit />
+          </button>
+          <button
+            onClick={() => handleDelete(row.original.projectId)}
+            className="text-red-500 hover:text-red-700"
+          >
+            <Trash />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const handleDelete = (projectId: number) => {
+    if (window.confirm("Are you sure you want to delete this project?")) {
+      deleteMutation.mutate(projectId);
+    }
+  };
+
+  const table = useReactTable<ProjectTableData>({
     data: projects,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    pageCount: totalPages,
+    state: { pagination: { pageIndex, pageSize } },
+    onPaginationChange: (updater) => {
+      const newState =
+        typeof updater === "function"
+          ? updater({ pageIndex, pageSize })
+          : updater;
+      setPageIndex(newState.pageIndex);
+    },
   });
 
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
   return (
-    <div className="overflow-x-auto border rounded-xl">
-      <table className="w-full text-sm border-collapse">
-        <thead className="bg-gray-50 text-left text-gray-600 text-xs font-semibold">
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white border border-gray-200">
+        <thead>
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
+            <tr key={headerGroup.id} className="bg-gray-100">
               {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-3">
+                <th
+                  key={header.id}
+                  className="px-4 py-2 text-left text-sm font-medium text-gray-900 border-b"
+                >
                   {flexRender(
                     header.column.columnDef.header,
                     header.getContext()
@@ -136,21 +190,41 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({
             </tr>
           ))}
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id} className="hover:bg-gray-50">
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-3">
-                  {flexRender(
-                    cell.column.columnDef.cell,
-                    cell.getContext()
-                  )}
+                <td
+                  key={cell.id}
+                  className="px-4 py-2 text-sm text-gray-700 border-b"
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="flex justify-between items-center mt-4">
+        <button
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="text-sm text-gray-700">
+          Page {table.getState().pagination.pageIndex + 1} of{" "}
+          {table.getPageCount()}
+        </span>
+        <button
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
