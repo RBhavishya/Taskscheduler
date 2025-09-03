@@ -6,7 +6,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, ChevronDown, X, CheckCircle, MoveLeft, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,12 +45,14 @@ const AddProjectForm = ({
   const [description, setDescription] = useState("");
   const [links, setLinks] = useState<string[]>([]);
   const [linkInput, setLinkInput] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [assignedUsers, setAssignedUsers] = useState<number[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [dueDateOpen, setDueDateOpen] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const [triggerWidth, setTriggerWidth] = useState<number | null>(null);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -72,8 +73,8 @@ const AddProjectForm = ({
       setTitle(p.title || "");
       setDescription(p.description || "");
       setLinks(p.links || []);
-      setStartDate(p.start_date || "");
-      setDueDate(p.due_date || "");
+      setStartDate(p.start_date ? dayjs(p.start_date).toDate() : undefined);
+      setDueDate(p.due_date ? dayjs(p.due_date).toDate() : undefined);
       setAssignedUsers(p.assigned_users || []);
     }
   }, [mode, projectResp]);
@@ -154,15 +155,9 @@ const AddProjectForm = ({
     setLinks(links.filter((_, i) => i !== index));
   };
 
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date?: Date) => {
     if (!date) return "";
-    if (typeof date === "string") return date;
     return dayjs(date).format("YYYY-MM-DD");
-  };
-
-  const getNextDay = (date: string) => {
-    if (!date) return undefined;
-    return dayjs(date).add(1, "day").toDate();
   };
 
   const handleSave = () => {
@@ -175,7 +170,7 @@ const AddProjectForm = ({
       links: links.length ? links : [],
       created_by: String(user.name),
       start_date: formatDate(startDate),
-      due_date: dueDate ? formatDate(dueDate) : "",
+      due_date: formatDate(dueDate),
       assigned_users: assignedUsers,
     };
     if (mode === "edit") {
@@ -190,8 +185,8 @@ const AddProjectForm = ({
     setDescription("");
     setLinks([]);
     setLinkInput("");
-    setStartDate("");
-    setDueDate("");
+    setStartDate(undefined);
+    setDueDate(undefined);
     setAssignedUsers([]);
     setSearch("");
     setFormError(null);
@@ -261,58 +256,32 @@ const AddProjectForm = ({
         {/* Start Date Picker */}
         <div className="flex flex-col gap-2 flex-1">
           <label className="text-sm font-medium">Start Date</label>
-          <Popover>
+          <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
+              <div
                 className={cn(
-                  "w-full justify-start text-left font-normal border-gray-300 hover:bg-gray-50 transition-colors",
+                  "w-full flex items-center gap-2 border rounded-lg p-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors",
                   !startDate && "text-muted-foreground"
                 )}
+                onClick={() => setStartDateOpen(true)}
               >
-                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500 cursor-pointer" />
-                {startDate ? dayjs(startDate).format("YYYY-MM-DD") : "Pick a date"}
-              </Button>
+                <CalendarIcon className="h-4 w-4 text-gray-500" />
+                {startDate ? formatDate(startDate) : "Pick a date"}
+              </div>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={startDate ? dayjs(startDate).toDate() : undefined}
+                selected={startDate}
                 onSelect={(date) => {
-                  if (date) {
-                    const formattedDate = formatDate(date);
-                    setStartDate(formattedDate);
-                    if (dueDate && dayjs(dueDate).isBefore(dayjs(formattedDate))) {
-                      setDueDate("");
-                    }
+                  setStartDate(date);
+                  setStartDateOpen(false);
+                  if (date && dueDate && dayjs(dueDate).isBefore(dayjs(date))) {
+                    setDueDate(undefined);
                   }
                 }}
                 disabled={(date) => dayjs(date).isBefore(dayjs(), "day")}
-                initialFocus
                 className="rounded-md border bg-white shadow-sm"
-                classNames={{
-                  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                  month: "space-y-4",
-                  caption: "flex justify-center pt-1 relative items-center",
-                  caption_label: "text-sm font-medium",
-                  nav: "space-x-1 flex items-center",
-                  nav_button: cn(
-                    "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-                    "border rounded-md"
-                  ),
-                  table: "w-full border-collapse space-y-1",
-                  head_row: "flex",
-                  head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-                  row: "flex w-full mt-2",
-                  cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                  day: cn(
-                    "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-                    "hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
-                  ),
-                  day_selected: "bg-purple-600 text-white hover:bg-purple-700",
-                  day_today: "bg-gray-100 text-purple-600 font-semibold",
-                  day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
-                }}
               />
             </PopoverContent>
           </Popover>
@@ -326,57 +295,32 @@ const AddProjectForm = ({
         {/* Due Date Picker */}
         <div className="flex flex-col gap-2 flex-1">
           <label className="text-sm font-medium">Due Date</label>
-          <Popover>
+          <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="outline"
+              <div
                 className={cn(
-                  "w-full justify-start text-left font-normal border-gray-300 hover:bg-gray-50 transition-colors",
-                  !dueDate && "text-muted-foreground"
+                  "w-full flex items-center gap-2 border rounded-lg p-2 text-sm cursor-pointer hover:bg-gray-50 transition-colors",
+                  !dueDate && "text-muted-foreground",
+                  !startDate && "opacity-50 cursor-not-allowed"
                 )}
-                disabled={!startDate}
+                onClick={() => startDate && setDueDateOpen(true)}
               >
-                <CalendarIcon className="mr-2 h-4 w-4 text-gray-500 cursor-pointer" />
-                {dueDate ? dayjs(dueDate).format("YYYY-MM-DD") : "Pick a due date"}
-              </Button>
+                <CalendarIcon className="h-4 w-4 text-gray-500" />
+                {dueDate ? formatDate(dueDate) : "Pick a due date"}
+              </div>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={dueDate ? dayjs(dueDate).toDate() : undefined}
+                selected={dueDate}
                 onSelect={(date) => {
-                  if (date) {
-                    setDueDate(formatDate(date));
-                  }
+                  setDueDate(date);
+                  setDueDateOpen(false);
                 }}
                 disabled={(date) =>
                   !startDate || dayjs(date).isBefore(dayjs(startDate), "day")
                 }
-                initialFocus
                 className="rounded-md border bg-white shadow-sm"
-                classNames={{
-                  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                  month: "space-y-4",
-                  caption: "flex justify-center pt-1 relative items-center",
-                  caption_label: "text-sm font-medium",
-                  nav: "space-x-1 flex items-center",
-                  nav_button: cn(
-                    "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-                    "border rounded-md"
-                  ),
-                  table: "w-full border-collapse space-y-1",
-                  head_row: "flex",
-                  head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-                  row: "flex w-full mt-2",
-                  cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                  day: cn(
-                    "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-                    "hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
-                  ),
-                  day_selected: "bg-purple-600 text-white hover:bg-purple-700",
-                  day_today: "bg-gray-100 text-purple-600 font-semibold",
-                  day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
-                }}
               />
             </PopoverContent>
           </Popover>
