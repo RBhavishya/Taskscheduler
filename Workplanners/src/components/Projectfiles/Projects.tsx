@@ -24,7 +24,7 @@ const Projects = () => {
   );
   const [showDetails, setShowDetails] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(16);
+  const [pageSize, setPageSize] = useState(25);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -81,7 +81,7 @@ const Projects = () => {
     total_records: data?.data?.data?.pagination_info?.total_records || 0,
     total_pages: data?.data?.data?.pagination_info?.total_pages || 1,
     current_page: data?.data?.data?.pagination_info?.current_page || 1,
-    page_size: data?.data?.data?.pagination_info?.page_size || pageSize,
+    page_size: data?.data?.data?.pagination_info?.page_size || 25,
     next_page: data?.data?.data?.pagination_info?.next_page || null,
     prev_page: data?.data?.data?.pagination_info?.prev_page || null,
   };
@@ -315,6 +315,7 @@ const Projects = () => {
         style={{
           position: "fixed",
           bottom: 0,
+          overflow: "hidden",
         }}
       >
         <Pagination
