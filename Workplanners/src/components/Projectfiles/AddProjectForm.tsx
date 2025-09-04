@@ -96,7 +96,7 @@ const AddProjectForm = ({
     mutationFn: (newProject: ProjectData) => createProjectAPI(newProject),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      resetForm();
+      navigate({ to: "/projects" });
       onSave?.(data.data);
       setSuccessMessage(data.message || "Project created successfully");
       setTimeout(() => setSuccessMessage(null), 2000);
@@ -121,6 +121,7 @@ const AddProjectForm = ({
       onSave?.(data.data);
       setSuccessMessage("Project updated successfully");
       setTimeout(() => setSuccessMessage(null), 2000);
+      navigate({ to: "/projects" });
     },
     onError: (error: any) => {
       setErrors({});

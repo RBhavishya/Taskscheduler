@@ -14,6 +14,8 @@ import {
 } from "../ui/dropdown-menu";
 import { MoreVertical, Filter, LayoutGrid, List } from "lucide-react";
 import ProjectsTable from "src/components/Projectfiles/ProjectsTable";
+import DeleteProject from "./Deleteproject";
+
 const Projects = () => {
   const [time, setTime] = useState(new Date());
   const [search, setSearch] = useState("");
@@ -22,9 +24,12 @@ const Projects = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
     null
   );
+  const [deleteTarget, setDeleteTarget] = useState<ProjectData | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const [showDetails, setShowDetails] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const [pageSize, setPageSize] = useState(12);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -221,16 +226,19 @@ const Projects = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() =>
-                              navigate({ to: `/projects/edit/${project.id}` })
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate({ to: `/projects/edit/${project.id}` });
+                            }}
                           >
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() =>
-                              console.log("Delete project", project.id)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation(); // prevent card click
+                              setDeleteTarget(project);
+                              setShowDeleteDialog(true);
+                            }}
                           >
                             Delete
                           </DropdownMenuItem>
@@ -320,10 +328,19 @@ const Projects = () => {
           </>
         ) : (
           <div className="w-full">
-            < ProjectsTable projects={existingProjects}  />
+            <ProjectsTable/>
           </div>
         )}
       </div>
+      {showDeleteDialog && deleteTarget && (
+        <DeleteProject
+          data={deleteTarget}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setDeleteTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -81,9 +81,29 @@ const Viewdetails = () => {
         {/* Details Section (1/3) */}
         <div className="w-1/3 border border-gray-200 rounded-3xl p-4">
           <div className="text-2xl font-bold mb-4">Details</div>
-          <p className="mb-2">
-            <strong>Created By:</strong> {projectdata.created_by || "NA"}
-          </p>
+
+          {/* ✅ Created By User */}
+          <div className="flex items-center gap-3 mb-4">
+            {projectdata.createdByUser?.profile_pic ? (
+              <img
+                src={projectdata.createdByUser.profile_pic}
+                alt={projectdata.createdByUser.display_name}
+                className="w-10 h-10 rounded-full object-cover border"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">
+                {projectdata.createdByUser?.display_name?.charAt(0) || "U"}
+              </div>
+            )}
+            <div>
+              <p className="font-medium">
+                {projectdata.createdByUser?.display_name || "Unknown"}
+              </p>
+              <p className="text-xs text-gray-500">Created By</p>
+            </div>
+          </div>
+
+          {/* ✅ Remaining Info */}
           <p className="mb-2">
             <strong>Updated By:</strong> {projectdata.updated_by || "NA"}
           </p>
