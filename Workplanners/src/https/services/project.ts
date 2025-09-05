@@ -71,3 +71,56 @@ export const getAllProjectsWithUsersAPI = async (queryParam: string) => {
     throw error;
   }
 };
+
+// PATCH /projects/:id/status
+export const patchProjectStatusAPI = async(id: number, data: { project_status: string }) => {
+  try{
+    const response= await $fetch.patch(`/projects/${id}/status`, data);
+  }
+  catch(error){
+    throw error;
+  }
+}
+
+
+// GET /projects/:id/users/assigned
+export const getAssignedUsersAPI = async(id: number) =>{
+  try{
+    const response = await $fetch.get(`/projects/${id}/users/assigned`);
+    return response;
+  }
+  catch(error){
+    throw error;
+  }
+}
+
+// DELETE /projects/:id/users/:userId
+export const deleteAssignedUserAPI = async(projectId: number, userId: number) =>{
+  try{
+    const response=await $fetch.delete(`/projects/${projectId}/users/${userId}`);
+    return response;
+  }catch(error){
+    throw error;
+  }
+}
+
+// GET /projects/:id/users/available
+export const getAvailableUsersAPI = async(id: number) =>{
+  try{
+    const response=await $fetch.get(`/projects/${id}/users/available`);
+    return response;
+  }
+  catch(error){
+    throw error;
+  }
+}
+
+// POST /projects/:id/users/:userId
+export const assignUserAPI = async(projectId: number, userId: number) =>{
+  try{
+    const response=await $fetch.post(`/projects/${projectId}/users/${userId}`);
+    return response;
+  }catch(error){
+    throw error;
+  }
+}
