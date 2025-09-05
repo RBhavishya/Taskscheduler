@@ -6,6 +6,7 @@ import loginimage from "src/assets/loginimage.png";
 import slackicon from "src/assets/slackicon.svg";
 
 import { slackAuthAPI, slackCallbackAPI } from "@/https/services/auth";
+import Cookies from "js-cookie";
 
 const Loginpage = () => {
   const navigate = useNavigate();
@@ -40,19 +41,15 @@ const Loginpage = () => {
       console.log(data);
       if (data?.status === 200) {
         const user = data?.data?.data.user;
-        console.log(user);
-        console.log
-        const slack_token = data?.data?.data.slack_token;
-        const jwt_token = data?.data?.data?.jwt_token;
-        console.log("found all 3");
-        if (user && slack_token && jwt_token) {
+        const token = data?.data?.data.token;
+
+        if (user && token) {
           localStorage.setItem("user", JSON.stringify(user));
-          localStorage.setItem("access_token", slack_token.access_token);
-          localStorage.setItem("refresh_token", slack_token.refresh_token);
-          localStorage.setItem("expires_at", String(slack_token.expires_at));
-          localStorage.setItem("jwt_token", jwt_token.access_token);
-          localStorage.setItem("jwt_refresh_token", jwt_token.refresh_token);
-          console.log("stored in local storage");
+          localStorage.setItem("access_token", token.access_token);
+          localStorage.setItem("refresh_token", token.refresh_token);
+          localStorage.setItem("expires_at", String(token.expires_at));
+          Cookies.set("token", token.access_token);
+          Cookies.set("refreshToken", token.refresh_token);
         }
         navigate({ to: "/dashboard" });
       }
