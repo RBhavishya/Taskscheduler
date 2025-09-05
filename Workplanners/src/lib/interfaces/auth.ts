@@ -18,11 +18,15 @@ export interface SlackCallbackResponse {
       email?: string;
     
     };
-    token: {
+    slack_token: {
       access_token: string;
       refresh_token: string;
       expires_at: number;
     };
+    jwt_token:{
+      access_token:string;
+      refresh_token:string;
+    }
   };
 };
   message?: string;

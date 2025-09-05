@@ -53,3 +53,21 @@ export const getTasksByProjectId = async (projectId: number): Promise<TaskRespon
     throw error;
   }
 };
+
+export const deleteProjectAPI = async (id: number) => {
+  try {
+    const response=await $fetch.delete(`/projects/${id}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllProjectsWithUsersAPI = async (queryParam: string) => {
+  try {
+    const response = await $fetch.get(`/projects/users?${queryParam}`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
