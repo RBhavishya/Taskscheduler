@@ -116,7 +116,7 @@ const ProjectsTable: React.FC = () => {
             <div className="flex gap-2">
               <button
                 className="border border-gray-400 rounded px-2 py-1 text-gray-600"
-                onClick={() => navigate({ to: `/projects/view/${p.id}` })}
+                onClick={() => navigate({ to: `/projects/${p.id}` })}
               >
                 <Eye size={16} />
               </button>

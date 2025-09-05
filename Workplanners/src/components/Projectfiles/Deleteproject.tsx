@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { toast } from "sonner";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -9,41 +9,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getProjectByIdAPI, deleteProjectAPI } from "@/https/services/project";
+import { deleteProjectAPI } from "@/https/services/project";
 import { ProjectData } from "@/lib/interfaces/project";
+import { useNavigate } from "@tanstack/react-router";
 
-const DeleteProject = ({
-  data,
-  onClose,
-}: {
-  data: ProjectData;
-  onClose: () => void;
-}) => {
-  const [open, setOpen] = useState(true);
-  const [projectId, setProjectId] = useState<number | null>(null);
+interface DeleteProjectProps {
+  open: boolean;
+  data: ProjectData | null;
+  onOpenChange: (open: boolean) => void;
+}
+
+const DeleteProject = ({ open, data, onOpenChange }: DeleteProjectProps) => {
   const queryClient = useQueryClient();
-
-  // fetch project if needed (optional)
-  const { data: selectedProjectData } = useQuery({
-    queryKey: ["project", projectId],
-    queryFn: async () => {
-      const result = await getProjectByIdAPI(projectId!);
-      return result;
-    },
-    enabled: !!projectId,
-  });
+const navigate = useNavigate();
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return await deleteProjectAPI(id);
-    },
+    mutationFn: async (id: number) => await deleteProjectAPI(id),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success(
         res?.data?.message || "The project was deleted successfully."
       );
-      setOpen(false);
-      onClose();
+      navigate({ to: "/projects" });
     },
     onError: (error: any) => {
       toast.error(
@@ -53,32 +40,18 @@ const DeleteProject = ({
   });
 
   const handleDelete = async () => {
-    try {
-      await deleteMutation.mutateAsync(data.id!);
-    } catch (err) {
-      console.error("Delete failed:", err);
-    }
+    if (!data?.id) return;
+    await deleteMutation.mutateAsync(data.id);
   };
 
-  useEffect(() => {
-    if (data?.id !== undefined) {
-      setProjectId(data.id);
-    }
-  }, [data]);
-
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(val) => {
-        setOpen(val);
-        if (!val) onClose();
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this project: <b>{data.title}</b>?
+            Are you sure you want to delete this project:{" "}
+            <b>{data?.title || "Untitled"}</b>?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -93,7 +66,7 @@ const DeleteProject = ({
           <button
             type="button"
             className="px-4 py-2 border rounded-lg"
-            onClick={() => setOpen(false)}
+            onClick={() => onOpenChange(false)}
           >
             Cancel
           </button>

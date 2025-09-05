@@ -40,13 +40,15 @@ const Loginpage = () => {
       console.log(data);
       if (data?.status === 200) {
         const user = data?.data?.data.user;
-        const token = data?.data?.data.token;
-
-        if (user && token) {
+        const slack_token = data?.data?.data.slack_token;
+        const jwt_token=data?.data?.data?.jwt_token;
+        if (user && slack_token && jwt_token) {
           localStorage.setItem("user", JSON.stringify(user));
-          localStorage.setItem("access_token", token.access_token);
-          localStorage.setItem("refresh_token", token.refresh_token);
-          localStorage.setItem("expires_at", String(token.expires_at));
+          localStorage.setItem("access_token", slack_token.access_token);
+          localStorage.setItem("refresh_token", slack_token.refresh_token);
+          localStorage.setItem("expires_at", String(slack_token.expires_at));
+          localStorage.setItem("jwt_token", jwt_token.access_token);
+          localStorage.setItem("jwt_refresh_token", jwt_token.refresh_token);
         }
         navigate({ to: "/dashboard" });
       }

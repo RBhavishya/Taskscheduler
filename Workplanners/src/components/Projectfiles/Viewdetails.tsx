@@ -103,10 +103,7 @@ const Viewdetails = () => {
             </div>
           </div>
 
-          {/* ✅ Remaining Info */}
-          <p className="mb-2">
-            <strong>Updated By:</strong> {projectdata.updated_by || "NA"}
-          </p>
+        
           <p className="mb-2">
             <strong>Start Date:</strong> {formatDate(projectdata.start_date)}
           </p>

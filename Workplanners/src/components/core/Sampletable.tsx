@@ -83,6 +83,15 @@ const TasksTable: React.FC<TasksTableProps> = ({ projectId }) => {
         );
       },
     },
+        {
+      header: "StartDate",
+      accessorFn: (row) => formatDate(row.start_date),
+      cell: ({ getValue }) => (
+        <span className="px-3 py-1 rounded-md bg-blue-100 text-blue-600 text-xs font-medium">
+          {getValue() as string}
+        </span>
+      ),
+    },
     {
       header: "Due Date",
       accessorFn: (row) => formatDate(row.end_date),
