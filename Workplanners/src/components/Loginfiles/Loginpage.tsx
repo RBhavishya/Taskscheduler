@@ -41,17 +41,16 @@ const Loginpage = () => {
       console.log(data);
       if (data?.status === 200) {
         const user = data?.data?.data.user;
-        const token = data?.data?.data.token;
-
+        const token = data?.data?.data.jwt_token;
         if (user && token) {
           localStorage.setItem("user", JSON.stringify(user));
           localStorage.setItem("access_token", token.access_token);
           localStorage.setItem("refresh_token", token.refresh_token);
-          localStorage.setItem("expires_at", String(token.expires_at));
+          // localStorage.setItem("expires_at", String(token.expires_at));
           Cookies.set("token", token.access_token);
           Cookies.set("refreshToken", token.refresh_token);
+          navigate({ to: "/dashboard" });
         }
-        navigate({ to: "/dashboard" });
       }
     },
     onError: () => {
