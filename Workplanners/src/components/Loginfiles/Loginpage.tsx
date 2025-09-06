@@ -86,7 +86,7 @@ const Loginpage = () => {
             className="flex items-center gap-3 px-6 py-3 border border-gray-300 rounded-lg"
           >
             <img src={slackicon} alt="Slack" className="w-5 h-5" />
-            <span className="text-gray-700 font-medium">
+            <span className="text-gray-700 font-medium cursor-pointer">
               {slackAuthMutation.isPending || slackCallbackMutation.isPending
                 ? "Logging in..."
                 : "Continue with Slack"}

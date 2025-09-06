@@ -25,19 +25,22 @@ const navigate = useNavigate();
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => await deleteProjectAPI(id),
-    onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast.success(
-        res?.data?.message || "The project was deleted successfully."
-      );
-      navigate({ to: "/projects" });
-    },
+   onSuccess: (res) => {
+  queryClient.invalidateQueries({ queryKey: ["projects"] });
+  
+  toast.success(
+    res?.data?.message || "The project was deleted successfully."
+  );
+  navigate({ to: "/projects" });
+},
     onError: (error: any) => {
+      
       toast.error(
-        error?.response?.data?.message || "Failed to delete project."
+        error?.data?.message || "Failed to delete project."
       );
     },
   });
+  
 
   const handleDelete = async () => {
     if (!data?.id) return;

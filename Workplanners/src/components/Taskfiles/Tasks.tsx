@@ -34,7 +34,10 @@ const Tasks = () => {
     <div className="p-4">
       <div className="flex items-center mb-6 w-full">
         <div className="flex w-3/4 justify-center rounded gap-4">
-          <SmallCard />
+          <SmallCard cards={[{ title: "TODAY", value:0},
+    { title: "OVERDUE", value: 0},
+    { title: "CLOSED", value: 0},
+  ]} />
         </div>
         {/* divider */}
         <div className="h-10 w-px bg-gray-300 mx-6"></div>
