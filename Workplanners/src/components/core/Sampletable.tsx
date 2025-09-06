@@ -83,7 +83,7 @@ const TasksTable: React.FC<TasksTableProps> = ({ projectId }) => {
         );
       },
     },
-        {
+    {
       header: "StartDate",
       accessorFn: (row) => formatDate(row.start_date),
       cell: ({ getValue }) => (
@@ -106,13 +106,13 @@ const TasksTable: React.FC<TasksTableProps> = ({ projectId }) => {
       id: "actions",
       cell: () => (
         <div className="flex gap-3 justify-center text-gray-500">
-          <button className="hover:text-indigo-600">
+          <button className="hover:text-indigo-600 cursor-pointer">
             <Eye size={16} />
           </button>
-          <button className="hover:text-green-600">
+          <button className="hover:text-green-600 cursor-pointer">
             <Edit size={16} />
           </button>
-          <button className="hover:text-red-600">
+          <button className="hover:text-red-600 cursor-pointer">
             <Trash2 size={16} />
           </button>
         </div>
