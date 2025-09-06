@@ -1,9 +1,5 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import TasksInProjectTable from "../core/Sampletable";
@@ -14,54 +10,67 @@ import {
   deleteAssignedUserAPI,
   getAvailableUsersAPI,
   assignUserAPI,
+  getTaskStatusCountsAPI,
 } from "@/https/services/project";
-
-const statusColors: Record<string, string> = {
-  New: "bg-blue-100 text-blue-800",
-  Pending: "bg-yellow-100 text-yellow-800",
-  "In Progress": "bg-purple-100 text-purple-800",
-  Review: "bg-orange-100 text-orange-800",
-  Completed: "bg-green-100 text-green-800",
-};
+import SmallCard from "../core/Statuscards";
 
 const Viewdetails = () => {
   const { id } = useParams({ from: "/_layout/projects/$id/" });
-  const [time, setTime] = useState(new Date());
-  const [status, setStatus] = useState<string>("");
-  const [editingStatus, setEditingStatus] = useState(false);
-  const [assignedUsers, setAssignedUsers] = useState<any[]>([]);
-  const [availableUsers, setAvailableUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<number | "">("");
 
   const queryClient = useQueryClient();
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
 
   // Fetch project details
-  const { data, isLoading, error } = useQuery({
+  const {
+    data: projectResponse,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["project", id],
     queryFn: () => getProjectByIdAPI(Number(id)),
-    
   });
 
   // Fetch assigned users
-  useQuery({
+  const { data: assignedUsersData } = useQuery({
     queryKey: ["assignedUsers", id],
     queryFn: () => getAssignedUsersAPI(Number(id)),
   });
 
   // Fetch available users
-  useQuery({
+  const { data: availableUsersData } = useQuery({
     queryKey: ["availableUsers", id],
     queryFn: () => getAvailableUsersAPI(Number(id)),
   });
 
+  const statusColors: Record<string, string> = {
+    NEW: "bg-blue-100 text-blue-800",
+    PENDING: "bg-yellow-100 text-yellow-800",
+    IN_PROGRESS: "bg-purple-100 text-purple-800",
+    REVIEW: "bg-orange-100 text-orange-800",
+    COMPLETED: "bg-green-100 text-green-800",
+  };
+  const { data: status } = useQuery({
+    queryKey: ["taskStatusCounts", id],
+    queryFn: () => getTaskStatusCountsAPI(Number(id)),
+  }) as {
+    data: {
+      data: {
+        total_count: number;
+        completed_count: number;
+        inProgress_count: number;
+        new_count: number;
+        review_count: number;
+        pending_count: number;
+      };
+    };
+  };
   // Mutations
   const patchStatusMutation = useMutation({
     mutationFn: (newStatus: string) =>
       patchProjectStatusAPI(Number(id), { project_status: newStatus }),
-    onSuccess: (res:any) => {
+    onSuccess: (res: any) => {
       toast.success("Status updated successfully");
-      setStatus(res.data.data.project_status);
       queryClient.invalidateQueries({ queryKey: ["project", id] });
     },
     onError: (err: any) => {
@@ -94,33 +103,21 @@ const Viewdetails = () => {
     },
   });
 
-  // Clock
-  useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const formattedTime = time.toLocaleTimeString("en-GB");
-  const formattedDate = time.toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "2-digit",
-    month: "short",
-  });
-
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error loading project</p>;
 
-  const projectdata = data?.data.data;
+  const projectdata = projectResponse?.data?.data;
   if (!projectdata) return <p>No project found</p>;
+
+  const assignedUsers = assignedUsersData?.data?.data || [];
+  const availableUsers = availableUsersData?.data?.data || [];
 
   // Helpers
   const formatDate = (dateStr: string | null) =>
     dateStr ? new Date(dateStr).toLocaleDateString("en-CA") : "NA";
 
   const handleStatusChange = (newStatus: string) => {
-    setStatus(newStatus);
     patchStatusMutation.mutate(newStatus);
-    setEditingStatus(false);
   };
 
   const handleRemoveUser = (userId: number) => {
@@ -135,13 +132,20 @@ const Viewdetails = () => {
 
   return (
     <div className="p-4">
-      {/* Clock & Date */}
       <div className="flex items-center mb-6 w-full">
-        <div className="h-10 w-px bg-gray-300 mx-6"></div>
-        <div className="flex flex-col justify-around w-1/4">
-          <span className="text-lg font-semibold">{formattedTime}</span>
-          <span className="text-sm text-gray-500">{formattedDate}</span>
-        </div>
+        <SmallCard
+          cards={[
+            { title: "Total Tasks", value: status?.data?.total_count },
+            { title: "Completed Tasks", value: status?.data?.completed_count },
+            {
+              title: "In Progress Task",
+              value: status?.data?.inProgress_count,
+            },
+            { title: "New Tasks", value: status?.data?.new_count },
+            { title: "Review Tasks", value: status?.data?.review_count },
+            { title: "Pending Tasks", value: status?.data?.pending_count },
+          ]}
+        />
       </div>
 
       {/* Title + Description */}
@@ -152,8 +156,10 @@ const Viewdetails = () => {
           </div>
           <div className="flex items-center gap-[3px] text-xl font-semibold">
             <span>{projectdata.title}</span>
-            <span className="text-sm text-gray-600">
-              ({projectdata.project_status || "NA"})
+            <span
+              className={`ml-2 text-sm px-2 py-1 rounded ${statusColors[projectdata.project_status] || "bg-gray-200 text-gray-800"}`}
+            >
+              {projectdata.project_status}
             </span>
           </div>
         </div>
@@ -197,28 +203,17 @@ const Viewdetails = () => {
           {/* Status */}
           <div className="mb-4">
             <strong>Status:</strong>{" "}
-            {editingStatus ? (
-              <select
-                value={status}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                onBlur={() => setEditingStatus(false)}
-                className="border rounded p-1"
-              >
-                {Object.keys(statusColors).map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span
-                className={`px-2 py-1 rounded-full ${statusColors[status]}`}
-                onClick={() => setEditingStatus(true)}
-                style={{ cursor: "pointer" }}
-              >
-                {status || "NA"}
-              </span>
-            )}
+            <select
+              value={projectdata.project_status}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              className="ml-2 border rounded p-1"
+            >
+              <option value="NEW">NEW</option>
+              <option value="IN_PROGRESS">IN_PROGRESS</option>
+              <option value="OVER_DUE">PENDING</option>
+              <option value="REVIEW">REVIEW</option>
+              <option value="COMPLETED">COMPLETED</option>
+            </select>
           </div>
 
           {/* Dates */}
@@ -236,7 +231,7 @@ const Viewdetails = () => {
               {assignedUsers.length === 0 && (
                 <li className="text-gray-500">No users assigned.</li>
               )}
-              {assignedUsers.map((user) => (
+              {assignedUsers.map((user: any) => (
                 <li
                   key={user.id}
                   className="flex items-center justify-between gap-2 mb-1 px-2 py-1 rounded border"
@@ -260,7 +255,7 @@ const Viewdetails = () => {
                 className="border rounded p-1 flex-1"
               >
                 <option value="">Select user...</option>
-                {availableUsers.map((user) => (
+                {availableUsers.map((user: any) => (
                   <option key={user.id} value={user.id}>
                     {user.display_name}
                   </option>

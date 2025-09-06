@@ -166,7 +166,7 @@ const AddProjectForm = ({
       title,
       description,
       links: links.length ? links : [],
-      created_by: String(user.name),
+      created_by: String(user.display_name),
       start_date: formatDate(startDate),
       due_date: formatDate(dueDate),
       assigned_users: assignedUsers,

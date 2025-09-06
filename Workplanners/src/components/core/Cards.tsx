@@ -24,6 +24,10 @@ const cardConfig: Record<string, { bg: string; icon: React.ReactNode }> = {
     bg: "bg-green-100",
     icon: <RefreshCw className="text-green-500" size={28} />,
   },
+  "Review Tasks": {
+    bg: "bg-yellow-100",
+    icon: <ClipboardList className="text-yellow-500" size={28} />,
+  },
 };
 
 const BigCard = ({ title, value = 0, icon }: BigCardProps) => {
